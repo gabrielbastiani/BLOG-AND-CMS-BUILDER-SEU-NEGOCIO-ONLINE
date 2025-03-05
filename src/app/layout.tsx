@@ -15,20 +15,38 @@ const geistSans = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const response = await fetch(`${API_URL}configuration_blog/get_configs`, {
-    cache: "no-store",
-  });
-  const blog = await response.json();
+  let blog = null;
+  
+  try {
+    const response = await fetch(`${API_URL}configuration_blog/get_configs`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    blog = await response.json();
+  } catch (error) {
+    console.error("Error fetching blog configuration:", error);
+  }
+
+  // Fallback para valores padrão
+  const defaultMetadata = {
+    title: "Blog",
+    description: "Descrição do blog",
+    favicon: "../app/favicon.ico",
+  };
 
   const faviconUrl = blog?.favicon
     ? new URL(`files/${blog.favicon}`, API_URL).toString()
-    : "../app/favicon.ico";
+    : defaultMetadata.favicon;
 
   return {
-    title: blog.name_blog ? blog.name_blog : "Blog",
-    description: blog.description_blog ? blog.description_blog : "Descrição do blog",
+    title: blog?.name_blog || defaultMetadata.title,
+    description: blog?.description_blog || defaultMetadata.description,
     icons: {
-      icon: `${faviconUrl}`
+      icon: faviconUrl,
     },
   };
 }
