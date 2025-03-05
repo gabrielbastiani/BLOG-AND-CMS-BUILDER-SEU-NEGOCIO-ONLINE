@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   
   try {
     const response = await fetch(`${API_URL}configuration_blog/get_configs`, {
-      cache: "no-store",
+      headers: { 'Cache-Control': 'public, max-age=3600' }
     });
 
     if (!response.ok) {
