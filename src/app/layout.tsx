@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
   const blog = await response.json();
 
-  const faviconUrl = blog.favicon
+  const faviconUrl = blog?.favicon
     ? new URL(`files/${blog.favicon}`, API_URL).toString()
     : "../app/favicon.ico";
 
