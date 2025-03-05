@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import BlogLayout from "@/app/components/blog_components/blogLayout";
 import { Footer } from "@/app/components/blog_components/footer";
 import { Navbar } from "@/app/components/blog_components/navbar";

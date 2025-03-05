@@ -69,6 +69,12 @@ export function Footer() {
                         </div>
                     ))}
                 </div>
+                <Link
+                    href="/politicas_de_privacidade"
+                    className="text-white mb-5"
+                >
+                    Politicas de privacidade
+                </Link>
                 <p className="mb-4">
                     &copy; {new Date().getFullYear()}{" "}
                     {configs?.name_blog ? configs?.name_blog : "Blog"}. Todos os direitos

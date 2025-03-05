@@ -108,7 +108,7 @@ export default function Register() {
             formData.append("email_blog", data.email_blog || "");
 
             if (logo) {
-                formData.append("file", logo);
+                formData.append("logo", logo);
             }
             
             await apiClient.post('/configuration_blog/create', formData);
@@ -117,6 +117,7 @@ export default function Register() {
 
         } catch (error) {
             toast.error("Erro ao cadstrar dados do blog.");
+            console.log(error)
         }
 
         if (!captchaToken) {

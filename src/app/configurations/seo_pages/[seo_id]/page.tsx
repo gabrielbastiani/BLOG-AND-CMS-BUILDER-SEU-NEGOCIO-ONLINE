@@ -1,5 +1,6 @@
 "use client"
 
+export const dynamic = 'force-dynamic';
 import { Section } from "@/app/components/section";
 import { SidebarAndHeader } from "@/app/components/sidebarAndHeader";
 import { TitlePage } from "@/app/components/titlePage";
@@ -22,7 +23,8 @@ const schema = z.object({
         "Contato",
         "Todos os artigos",
         "Todas as categorias",
-        "Artigos em uma determinada categoria"
+        "Artigos em uma determinada categoria",
+        "Politicas de privacidade"
     ], {
         errorMap: () => ({ message: "Selecione uma página válida" })
     }),
@@ -322,7 +324,8 @@ export default function Seo_id({ params }: { params: { seo_id: string } }) {
                                     "Contato",
                                     "Todos os artigos",
                                     "Todas as categorias",
-                                    "Artigos em uma determinada categoria"
+                                    "Artigos em uma determinada categoria",
+                                    "Politicas de privacidade"
                                 ].map((path) => (
                                     <option key={path} value={path}>
                                         {path}

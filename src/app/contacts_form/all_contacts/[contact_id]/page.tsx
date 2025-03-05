@@ -1,5 +1,6 @@
 "use client"
 
+export const dynamic = 'force-dynamic';
 import { Section } from "@/app/components/section";
 import { SidebarAndHeader } from "@/app/components/sidebarAndHeader";
 import { TitlePage } from "@/app/components/titlePage";

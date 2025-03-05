@@ -20,7 +20,8 @@ const schema = z.object({
     "Contato",
     "Todos os artigos",
     "Todas as categorias",
-    "Artigos em uma determinada categoria"
+    "Artigos em uma determinada categoria",
+    "Politicas de privacidade"
   ], {
     errorMap: () => ({ message: "Selecione uma página válida" })
   }),
@@ -156,6 +157,7 @@ export default function SeoPages() {
                   "Todos os artigos",
                   "Todas as categorias",
                   "Artigos em uma determinada categoria",
+                  "Politicas de privacidade"
                 ].sort().map((path) => (
                   <option key={path} value={path}>
                     {path}
