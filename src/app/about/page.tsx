@@ -10,15 +10,21 @@ import { Metadata, ResolvingMetadata } from "next";
 const BLOG_URL = process.env.NEXT_PUBLIC_URL_BLOG;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function generateMetadata(
+export async function generateMetadata({
+    parent
+}: {
     parent: ResolvingMetadata
-): Promise<Metadata> {
+}): Promise<Metadata> {
+
+    if (!API_URL || !BLOG_URL) {
+        throw new Error('Variáveis de ambiente não configuradas');
+    }
 
     const fallbackMetadata: Metadata = {
         title: "Sobre Nós",
         description: "Conheça mais sobre nosso blog",
         openGraph: {
-            images: [{ url: '../../assets/no-image-icon-6.png' }]
+            images: [{ url: new URL('../../assets/no-image-icon-6.png', BLOG_URL).toString() }]
         }
     };
 
