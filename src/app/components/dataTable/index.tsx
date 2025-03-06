@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { JSX, Suspense } from "react";
 import { useContext, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { setupAPIClient } from "@/services/api";

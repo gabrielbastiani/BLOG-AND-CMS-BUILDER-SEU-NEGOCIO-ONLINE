@@ -25,6 +25,7 @@ const BLOG_URL = process.env.NEXT_PUBLIC_URL_BLOG;
 
 export async function generateMetadata(
   { params }: { params: { article_url: string } },
+  props: {},
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   try {
@@ -35,11 +36,12 @@ export async function generateMetadata(
       `/post/article/content?url_post=${params.article_url}`
     );
 
-    const previousImages = (await parent).openGraph?.images || [];
+    const previousParent = await parent;
+    const previousImages = previousParent.openGraph?.images || [];
 
     const cleanDescription = article_data.text_post
-      .replace(/<[^>]*>/g, '')
-      .substring(0, 160);
+      ?.replace(/<[^>]*>/g, '')
+      ?.substring(0, 160) || "Leia este artigo completo em nosso blog";
 
     const imageUrl = article_data.image_post
       ? new URL(`files/${article_data.image_post}`, API_URL).toString()
@@ -120,7 +122,13 @@ async function getData(article_url: string) {
   };
 }
 
-export default async function Article({ params }: { params: { article_url: string } }) {
+interface ArticlePageProps {
+  params: {
+    article_url: string;
+  };
+}
+
+export default async function Article({ params }: ArticlePageProps) {
 
   const { article_data, existing_slide, existing_sidebar } = await getData(params.article_url);
 

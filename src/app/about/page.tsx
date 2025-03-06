@@ -10,97 +10,96 @@ import { Metadata, ResolvingMetadata } from "next";
 const BLOG_URL = process.env.NEXT_PUBLIC_URL_BLOG;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function generateMetadata({
-    parent
-}: {
-    parent: ResolvingMetadata
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {},
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+
+  const fallbackMetadata: Metadata = {
+    title: "Sobre Nós",
+    description: "Conheça mais sobre nosso blog",
+    openGraph: {
+      images: [{ 
+        url: new URL('/assets/no-image-icon-6.png', BLOG_URL).toString() 
+      }]
+    }
+  };
+
+  try {
+    const apiClient = setupAPIClient();
 
     if (!API_URL || !BLOG_URL) {
-        throw new Error('Variáveis de ambiente não configuradas');
+      console.error('Variáveis de ambiente não configuradas');
+      return fallbackMetadata;
     }
 
-    const fallbackMetadata: Metadata = {
-        title: "Sobre Nós",
-        description: "Conheça mais sobre nosso blog",
-        openGraph: {
-            images: [{ url: new URL('../../assets/no-image-icon-6.png', BLOG_URL).toString() }]
-        }
+    const response = await apiClient.get('/configuration_blog/get_configs');
+    const { data } = await apiClient.get(`/seo/get_page?page=Sobre`);
+
+    if (!data) {
+      return fallbackMetadata;
+    }
+    
+    // ✅ Acesso direto ao parent
+    const previousParent = await parent;
+    const previousImages = previousParent.openGraph?.images || [];
+
+    const ogImages = data.ogImages?.map((image: string) => ({
+      url: new URL(`files/${image}`, API_URL).toString(),
+      width: Number(data.ogImageWidth) || 1200,
+      height: data.ogImageHeight || 630,
+      alt: data.ogImageAlt || 'Sobre',
+    })) || [];
+
+    const twitterImages = data.twitterImages?.map((image: string) => ({
+      url: new URL(`files/${image}`, API_URL).toString(),
+      width: Number(data.ogImageWidth) || 1200,
+      height: data.ogImageHeight || 630,
+      alt: data.ogImageAlt || 'Sobre',
+    })) || [];
+
+    const faviconUrl = response.data.favicon
+      ? new URL(`files/${response.data.favicon}`, API_URL).toString()
+      : new URL('/favicon.ico', BLOG_URL).toString();
+
+    return {
+      title: data?.title || 'Sobre - Nosso Blog',
+      description: data?.description || 'Conheça nosso blog',
+      metadataBase: new URL(BLOG_URL),
+      robots: {
+        follow: true,
+        index: true
+      },
+      icons: {
+        icon: faviconUrl
+      },
+      openGraph: {
+        title: data?.ogTitle || 'Sobre - Nosso Blog',
+        description: data?.ogDescription || 'Conheça nosso blog...',
+        images: [
+          ...ogImages,
+          ...previousImages,
+        ],
+        locale: 'pt_BR',
+        siteName: response.data.name_blog || 'Nosso Blog',
+        type: "website"
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: data?.twitterTitle || 'Sobre - Nosso Blog',
+        description: data?.twitterDescription || 'Conheça nosso blog...',
+        images: [
+          ...twitterImages,
+          ...previousImages,
+        ],
+        creator: data?.twitterCreator || '@perfil_twitter',
+      },
+      keywords: data?.keywords || [],
     };
-
-    try {
-        const apiClient = setupAPIClient();
-
-        if (!API_URL || !BLOG_URL) {
-            console.error('Variáveis de ambiente não configuradas');
-            return fallbackMetadata;
-        }
-
-        const response = await apiClient.get('/configuration_blog/get_configs');
-        const { data } = await apiClient.get(`/seo/get_page?page=Sobre`);
-
-        if (!data) {
-            return fallbackMetadata;
-        }
-        
-        const previousImages = (await parent).openGraph?.images || [];
-
-        const ogImages = data.ogImages?.map((image: string) => ({
-            url: new URL(`files/${image}`, API_URL).toString(),
-            width: Number(data.ogImageWidth) || 1200,
-            height: data.ogImageHeight || 630,
-            alt: data.ogImageAlt || 'Sobre',
-        })) || [];
-
-        const twitterImages = data.twitterImages?.map((image: string) => ({
-            url: new URL(`files/${image}`, API_URL).toString(),
-            width: Number(data.ogImageWidth) || 1200,
-            height: data.ogImageHeight || 630,
-            alt: data.ogImageAlt || 'Sobre',
-        })) || [];
-
-        const faviconUrl = response.data.favicon
-            ? new URL(`files/${response.data.favicon}`, API_URL).toString()
-            : "../app/favicon.ico";
-
-        return {
-            title: data?.title || 'Sobre - Nosso Blog',
-            description: data?.description || 'Conheça nosso blog',
-            metadataBase: new URL(BLOG_URL!),
-            robots: {
-                follow: true,
-                index: true
-            },
-            icons: {
-                icon: faviconUrl
-            },
-            openGraph: {
-                title: data?.ogTitle || 'Sobre - Nosso Blog',
-                description: data?.ogDescription || 'Conheça nosso blog...',
-                images: [
-                    ...ogImages,
-                    ...previousImages,
-                ],
-                locale: 'pt_BR',
-                siteName: response.data.name_blog || 'Nosso Blog',
-                type: "website"
-            },
-            twitter: {
-                card: 'summary_large_image',
-                title: data?.twitterTitle || 'Sobre - Nosso Blog',
-                description: data?.twitterDescription || 'Conheça nosso blog...',
-                images: [
-                    ...twitterImages,
-                    ...previousImages,
-                ],
-                creator: data?.twitterCreator || '@perfil_twitter',
-            },
-            keywords: data?.keywords || [],
-        };
-    } catch (error) {
-        console.error('Erro ao gerar metadados:', error);
-        return fallbackMetadata;
-    }
+  } catch (error) {
+    console.error('Erro ao gerar metadados:', error);
+    return fallbackMetadata;
+  }
 }
 
 async function getData() {

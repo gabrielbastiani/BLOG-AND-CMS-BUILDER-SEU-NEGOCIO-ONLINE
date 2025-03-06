@@ -21,7 +21,7 @@ export function setupAPIClient() {
     let cookies = cookie_user.get('@cmsblog.token');
 
     const api = axios.create({
-        baseURL: 'http://localhost:3333',
+        baseURL: 'https://apiblog.builderseunegocioonline.com.br',
         headers: {
             Authorization: `Bearer ${cookies}`
         }
