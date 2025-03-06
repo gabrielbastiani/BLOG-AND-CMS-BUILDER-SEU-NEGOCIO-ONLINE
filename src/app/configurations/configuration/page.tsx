@@ -49,9 +49,9 @@ export default function Configuration() {
     const [loading, setLoading] = useState(false);
     const [phoneValue, setPhoneValue] = useState("");
     const [isMounted, setIsMounted] = useState(false);
+    const [privacyPoliciesContent, setPrivacyPoliciesContent] = useState("");
 
     useEffect(() => {
-        // Formatação do telefone
         const formatPhone = (value: string) => {
             const numbers = value.replace(/\D/g, '');
             const match = numbers.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
@@ -115,37 +115,35 @@ export default function Configuration() {
         }
     }
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const apiClient = setupAPIClient();
-                const { data } = await apiClient.get("/configuration_blog/get_configs");
-                if (data.phone) {
-                    setPhoneValue(data.phone);
-                }
-                setId(data?.id || "");
-
-                setLogoUrl(data.logo || null);
-                setFaviconUrl(data.favicon || null);
-
-                reset({
-                    name_blog: data.name_blog,
-                    email_blog: data.email_blog,
-                    phone: data.phone,
-                    description_blog: data.description_blog,
-                    author_blog: data.author_blog,
-                    about_author_blog: data.about_author_blog
-                });
-
-                if (editorRef.current) {
-                    editorRef.current.setContent(data.privacy_policies || "")
-                }
-
-            } catch (error) {
-                toast.error("Erro ao carregar os dados do post.");
+    async function fetchData() {
+        try {
+            const apiClient = setupAPIClient();
+            const { data } = await apiClient.get("/configuration_blog/get_configs");
+            if (data.phone) {
+                setPhoneValue(data.phone);
             }
-        }
+            setId(data?.id || "");
 
+            setLogoUrl(data.logo || null);
+            setFaviconUrl(data.favicon || null);
+
+            reset({
+                name_blog: data.name_blog,
+                email_blog: data.email_blog,
+                phone: data.phone,
+                description_blog: data.description_blog,
+                author_blog: data.author_blog,
+                about_author_blog: data.about_author_blog
+            });
+
+            setPrivacyPoliciesContent(data.privacy_policies || "");
+
+        } catch (error) {
+            toast.error("Erro ao carregar os dados do post.");
+        }
+    }
+
+    useEffect(() => {
         fetchData();
     }, [reset]);
 
@@ -336,12 +334,14 @@ export default function Configuration() {
                     </div>
 
                     {isMounted && (
-                        <label>Politicas de privacidade
+                        <label>Políticas de privacidade
                             <Editor
                                 apiKey={TOKEN_TINY}
-                                onInit={(evt, editor) => (editorRef.current = editor)}
-                                {...register("privacy_policies")}
-                                initialValue={"<p>Digite seu conteúdo aqui...</p>"}
+                                onInit={(evt, editor) => {
+                                    editorRef.current = editor;
+                                    editor.setContent(privacyPoliciesContent);
+                                }}
+                                initialValue={privacyPoliciesContent}
                                 id="privacy_policies_editor"
                                 init={{
                                     height: 800,

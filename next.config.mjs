@@ -1,20 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    swcMinify: true,
-    typescript: {
-        ignoreBuildErrors: true,
-    },
     images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'apiblog.builderseunegocioonline.com.br',
-                port: '',
-                pathname: '/files/**',
-            },
-        ],
+        domains: ['localhost'],
     },
+    env: {
+        SITE_URL: process.env.NEXT_PUBLIC_URL_BLOG || 'http://localhost:3000',
+    }
 };
 
 export default nextConfig;

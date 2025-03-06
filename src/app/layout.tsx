@@ -5,6 +5,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProviderBlog } from "@/contexts/AuthContextBlog";
+import { PrivacyProvider } from "@/contexts/PrivacyContext";
+import PrivacyBanner from "./components/blog_components/police_privacy/privacyBanner";
+import PrivacySettingsModal from "./components/blog_components/police_privacy/privacySettingsModal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,7 +19,7 @@ const geistSans = localFont({
 
 export async function generateMetadata(): Promise<Metadata> {
   let blog = null;
-  
+
   try {
     const response = await fetch(`${API_URL}configuration_blog/get_configs`, {
       headers: { 'Cache-Control': 'public, max-age=3600' }
@@ -59,12 +62,16 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body id="root" className={`${geistSans.variable} antialiased`}>
-        <AuthProvider>
-          <AuthProviderBlog>
-            <ToastContainer autoClose={5000} />
-            {children}
-          </AuthProviderBlog>
-        </AuthProvider>
+        <PrivacyProvider>
+          <AuthProvider>
+            <AuthProviderBlog>
+              <ToastContainer autoClose={5000} />
+              {children}
+            </AuthProviderBlog>
+          </AuthProvider>
+          <PrivacyBanner />
+          <PrivacySettingsModal />
+        </PrivacyProvider>
       </body>
     </html>
   );

@@ -134,10 +134,12 @@ export default async function Politicas_de_privacidade() {
             banners={<PublicationSidebar existing_sidebar={existing_sidebar} />}
             footer={<Footer />}
         >
-            <div className="prose max-w-none text-gray-800 prose-h1:text-blue-600 prose-p:mb-4 prose-a:text-indigo-500 hover:prose-a:underline">
-                {configs?.privacy_policies && (
-                    <SafeHTML html={configs?.privacy_policies} />
-                )}
+            <div className="p-4 md:p-8 max-w-4xl mx-auto">
+                <div className="prose max-w-none text-gray-800 prose-h1:text-blue-600 prose-p:mb-4 prose-a:text-indigo-500 hover:prose-a:underline">
+                    {configs?.privacy_policies && (
+                        <SafeHTML html={configs?.privacy_policies} />
+                    )}
+                </div>
             </div>
             <MarketingPopup
                 position="POPUP"
