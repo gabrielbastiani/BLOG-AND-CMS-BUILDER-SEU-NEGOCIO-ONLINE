@@ -29,11 +29,11 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
 
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+    /* const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY; */
 
-    if (!RECAPTCHA_SITE_KEY) {
+    /* if (!RECAPTCHA_SITE_KEY) {
         throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    }
+    } */
 
     const router = useRouter();
 
@@ -236,7 +236,7 @@ export default function Register() {
                                     <div className='mb-3'>
                                         <ReCAPTCHA
                                             ref={captchaRef}
-                                            sitekey={RECAPTCHA_SITE_KEY}
+                                            sitekey="6Le7mewqAAAAAFZJtTo6loDPzYWt3DHivXrk4NiH"
                                             onChange={onChangeCaptcha}
                                         />
                                     </div>
