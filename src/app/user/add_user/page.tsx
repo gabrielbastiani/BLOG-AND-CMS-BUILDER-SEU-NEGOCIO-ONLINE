@@ -10,7 +10,6 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { setupAPIClient } from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useContext, useRef, useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -24,22 +23,13 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function Add_user() {
-
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-    if (!RECAPTCHA_SITE_KEY) {
-        throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    }
     
     const { user } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [generatedPassword, setGeneratedPassword] = useState<string>("");
     const [isChecked, setIsChecked] = useState(false);
     const [role, setRole] = useState<string>("EMPLOYEE");
-
-    const captchaRef = useRef<ReCAPTCHA | null>(null);
 
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -69,25 +59,15 @@ export default function Add_user() {
     const handleGeneratePassword = () => {
         const newPassword = generateComplexPassword(22);
         setGeneratedPassword(newPassword);
-        setValue("password", newPassword); // Preenche o campo de senha com a senha gerada
-    };
-
-    const onChangeCaptcha = (token: string | null) => {
-        setCaptchaToken(token);
+        setValue("password", newPassword);
     };
 
     const onChangeCheckbox = () => {
-        setIsChecked((prev) => !prev); // Altera o estado booleano
+        setIsChecked((prev) => !prev);
     };
 
     async function onSubmit(data: FormData) {
         setLoading(true);
-
-        if (!captchaToken) {
-            toast.error("Por favor, verifique o reCAPTCHA.");
-            setLoading(false);
-            return;
-        }
 
         if (role === "") {
             toast.error("Escolha uma função para esse usuário!!!");
@@ -196,12 +176,6 @@ export default function Add_user() {
                                 />
                                 Enviar para o novo usuário um e-mail com informações sobre a conta
                             </label>
-
-                            <ReCAPTCHA
-                                ref={captchaRef}
-                                sitekey={RECAPTCHA_SITE_KEY}
-                                onChange={onChangeCaptcha}
-                            />
 
                             <button
                                 onClick={handleSubmit(onSubmit)}

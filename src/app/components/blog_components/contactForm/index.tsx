@@ -4,7 +4,6 @@ import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "react-toastify";
 import { setupAPIClient } from "@/services/api";
 
@@ -19,19 +18,6 @@ type ContactFormInputs = z.infer<typeof contactFormSchema>;
 
 export default function ContactForm() {
 
-  const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-  if (!RECAPTCHA_SITE_KEY) {
-    throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-  }
-
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const captchaRef = useRef<ReCAPTCHA | null>(null);
-
-  const onChangeCaptcha = (token: string | null) => {
-    setRecaptchaToken(token);
-  };
-
   const {
     register,
     handleSubmit,
@@ -43,11 +29,6 @@ export default function ContactForm() {
 
   async function onSubmit(data: ContactFormInputs) {
     try {
-      if (!recaptchaToken) {
-        toast.error("Por favor, verifique o reCAPTCHA.");
-        return;
-      }
-
       const apiClient = setupAPIClient();
 
       await apiClient.post(`/form_contact/create_form_contact`, {
@@ -133,14 +114,6 @@ export default function ContactForm() {
         {errors.message && (
           <p className="text-red-500 text-xs italic">{errors.message.message}</p>
         )}
-      </div>
-
-      <div className="mb-4">
-        <ReCAPTCHA
-          ref={captchaRef}
-          sitekey={RECAPTCHA_SITE_KEY}
-          onChange={onChangeCaptcha}
-        />
       </div>
 
       <div className="flex items-center justify-between">

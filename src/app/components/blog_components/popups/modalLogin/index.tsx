@@ -1,7 +1,6 @@
 import React, { useContext, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -21,18 +20,12 @@ interface ModalLoginProps {
 
 export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
 
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
     const { signIn } = useContext(AuthContextBlog);
-
-    if (!RECAPTCHA_SITE_KEY) {
-        throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    }
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
 
-    const captchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const onChangeCaptcha = (token: string | null) => setCaptchaToken(token);
@@ -89,14 +82,6 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
                                 name="password"
                                 error={errors.password?.message}
                                 register={register}
-                            />
-                        </div>
-
-                        <div className='mb-3'>
-                            <ReCAPTCHA
-                                ref={captchaRef}
-                                sitekey={RECAPTCHA_SITE_KEY}
-                                onChange={onChangeCaptcha}
                             />
                         </div>
 

@@ -10,7 +10,6 @@ import { setupAPIClient } from '../../services/api'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import Image from 'next/image'
-import ReCAPTCHA from "react-google-recaptcha";
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { LoadingRequest } from '../components/loadingRequest'
 import Login from '../login/page'
@@ -29,18 +28,11 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
 
-    /* const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY; */
-
-    /* if (!RECAPTCHA_SITE_KEY) {
-        throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    } */
-
     const router = useRouter();
 
     const [superAdmin, setSuperAdmin] = useState([]);
     const [loading, setLoading] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-    const captchaRef = useRef<ReCAPTCHA | null>(null);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [logo, setLogo] = useState<File | null>(null);
 
@@ -64,10 +56,6 @@ export default function Register() {
         resolver: zodResolver(schema),
         mode: "onChange"
     });
-
-    const onChangeCaptcha = (token: string | null) => {
-        setCaptchaToken(token);
-    };
 
     function handleFile(e: ChangeEvent<HTMLInputElement>) {
         if (!e.target.files) return;
@@ -118,11 +106,6 @@ export default function Register() {
         } catch (error) {
             toast.error("Erro ao cadstrar dados do blog.");
             console.log(error)
-        }
-
-        if (!captchaToken) {
-            toast.error("Por favor, verifique o reCAPTCHA.");
-            return;
         }
 
         try {
@@ -230,14 +213,6 @@ export default function Register() {
                                             name="password"
                                             error={errors.password?.message}
                                             register={register}
-                                        />
-                                    </div>
-
-                                    <div className='mb-3'>
-                                        <ReCAPTCHA
-                                            ref={captchaRef}
-                                            sitekey="6Le7mewqAAAAAFZJtTo6loDPzYWt3DHivXrk4NiH"
-                                            onChange={onChangeCaptcha}
                                         />
                                     </div>
 

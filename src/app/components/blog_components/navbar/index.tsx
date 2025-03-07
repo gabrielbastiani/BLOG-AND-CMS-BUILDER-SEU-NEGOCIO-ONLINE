@@ -2,15 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { FiLogIn, FiMenu, FiSearch, FiUpload, FiUser, FiX } from "react-icons/fi";
-import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
+import { FiLogIn, FiMenu, FiSearch, FiUser, FiX } from "react-icons/fi";
+import { ChangeEvent, useContext, useState } from "react";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
-import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "react-toastify";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "../../input";
 import { setupAPIClientBlog } from "@/services/api_blog";
 import noImage from '../../../../assets/no-image-icon-6.png';
 import { ModalLogin } from "../popups/modalLogin";
@@ -35,11 +31,6 @@ type Post = {
 export function Navbar() {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-    if (!RECAPTCHA_SITE_KEY) {
-        throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    }
 
     const { isAuthenticated, loadingAuth, user, configs } = useContext(AuthContextBlog);
 

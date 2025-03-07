@@ -11,7 +11,6 @@ import { useContext, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LoadingRequest } from '../../components/loadingRequest'
-import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from 'react-toastify'
 import { setupAPIClient } from '@/services/api'
 import { AuthContext } from '@/contexts/AuthContext'
@@ -29,30 +28,18 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function RecoverPassword({ params }: { params: { recover_password: string } }) {
 
-    const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "";
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const router = useRouter();
     const { configs } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-    const captchaRef = useRef<ReCAPTCHA | null>(null);
 
     const { register, handleSubmit, formState: { errors } } = useForm<PasswordFormValues>({
         resolver: zodResolver(passwordSchema),
     });
 
-    const onChangeCaptcha = (token: string | null) => {
-        setCaptchaToken(token);
-    };
-
     async function onSubmit(data: PasswordFormValues) {
-
-        if (!captchaToken) {
-            toast.error("Por favor, verifique o reCAPTCHA.");
-            return;
-        }
 
         setLoading(true);
 
@@ -117,14 +104,6 @@ export default function RecoverPassword({ params }: { params: { recover_password
                                     name="password"
                                     error={errors.confirmPassword?.message}
                                     register={register}
-                                />
-                            </div>
-
-                            <div className='mb-3'>
-                                <ReCAPTCHA
-                                    ref={captchaRef}
-                                    sitekey={RECAPTCHA_SITE_KEY}
-                                    onChange={onChangeCaptcha}
                                 />
                             </div>
 

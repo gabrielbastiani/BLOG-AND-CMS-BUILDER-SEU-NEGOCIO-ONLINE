@@ -4,7 +4,6 @@ import { z } from "zod";
 import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import ReCAPTCHA from "react-google-recaptcha";
 import { setupAPIClientBlog } from "@/services/api_blog";
 import { Input } from "@/app/components/input";
 import { FiUpload } from "react-icons/fi";
@@ -26,16 +25,9 @@ interface ModalCreateUserProps {
 export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, loginModal }) => {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-    if (!RECAPTCHA_SITE_KEY) {
-        throw new Error("A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida.");
-    }
 
     const { user } = useContext(AuthContextBlog);
 
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-    const captchaRef = useRef<ReCAPTCHA | null>(null);
     const [avatarUrl, setAvatarUrl] = useState(
         user?.image_user ? `${API_URL}files/${user.image_user}` : ""
     );
@@ -46,10 +38,6 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
-
-    const onChangeCaptcha = (token: string | null) => {
-        setCaptchaToken(token);
-    };
 
     const onChangeCheckbox = () => {
         setIsChecked((prev) => !prev);
@@ -77,12 +65,6 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
 
             const apiClientBlog = setupAPIClientBlog();
             const formData = new FormData();
-
-            if (!captchaToken) {
-                toast.error("Por favor, verifique o reCAPTCHA.");
-                setLoading(false);
-                return;
-            }
 
             if (photo) {
                 formData.append("file", photo);
@@ -185,12 +167,6 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
                             />
                             Quer receber as novidades em seu e-mail?
                         </label>
-
-                        <ReCAPTCHA
-                            ref={captchaRef}
-                            sitekey={RECAPTCHA_SITE_KEY}
-                            onChange={onChangeCaptcha}
-                        />
 
                         <button
                             type="submit"
