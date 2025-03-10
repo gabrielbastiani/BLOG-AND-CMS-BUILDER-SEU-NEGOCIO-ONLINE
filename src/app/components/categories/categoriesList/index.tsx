@@ -22,15 +22,17 @@ const CategoriesList = ({ refetchCategories }: { refetchCategories: () => void }
 
   useEffect(() => {
     const handleRefetch = () => {
-      fetchCategories();
+      fetchCategories().catch(console.error);
     };
 
-    window.addEventListener("refetchCategories", handleRefetch);
-
-    return () => {
-      window.removeEventListener("refetchCategories", handleRefetch);
-    };
-  }, []);
+    // Adicionado fallback para SSR
+    if (typeof window !== "undefined") {
+      window.addEventListener("refetchCategories", handleRefetch);
+      return () => {
+        window.removeEventListener("refetchCategories", handleRefetch);
+      };
+    }
+  }, [refetchCategories]);
 
   const moveUpCategory = async (categoryId: string) => {
     try {
@@ -70,6 +72,7 @@ const CategoriesList = ({ refetchCategories }: { refetchCategories: () => void }
         {parentCategories.map(parentCategory => (
           <div key={parentCategory.id} className="p-4 rounded-lg shadow-lg bg-slate-400">
             <CategoryTree
+              key={parentCategory.id}
               categories={[parentCategory]}
               moveUpCategory={moveUpCategory}
               moveDownCategory={moveDownCategory}

@@ -1,7 +1,13 @@
-import React from "react";
-import { useDrag, useDrop, DndProvider } from "react-dnd";
+import React, { useCallback } from "react";
+import { useDrag, useDrop } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Category } from "../../../../../Types/types";
+
+let TouchBackend: any;
+if (typeof window !== "undefined") {
+  TouchBackend = require('react-dnd-touch-backend').default;
+}
 
 interface CategoryTreeProps {
     categories: Category[];
@@ -11,9 +17,15 @@ interface CategoryTreeProps {
     moveDownCategory: (categoryId: string) => void;
 }
 
+const isTouchDevice = () => {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+};
+
 const CategoryTree: React.FC<CategoryTreeProps> = ({ categories, moveCategory, moveUpCategory, moveDownCategory, level = 0 }) => {
+    const backend = isTouchDevice() ? TouchBackend : HTML5Backend;
+
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DndProvider backend={backend} options={{ enableMouseEvents: true }}>
             <ul className={`space-y-3 ${level === 0 ? "ml-0" : "ml-6"}`}>
                 {categories.map((category, index) => (
                     <CategoryItem
@@ -43,7 +55,7 @@ interface CategoryItemProps {
 }
 
 const CategoryItem: React.FC<CategoryItemProps> = ({ category, moveCategory, moveUpCategory, moveDownCategory, level, isFirst, isLast }) => {
-    const [{ isDragging }, ref] = useDrag({
+    const [{ isDragging }, drag] = useDrag({
         type: "category",
         item: { id: category.id },
         collect: (monitor) => ({
@@ -51,14 +63,22 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ category, moveCategory, mov
         }),
     });
 
-    const [, drop] = useDrop({
+    const [{ isOver }, drop] = useDrop({
         accept: "category",
-        hover: (dragged: { id: string }) => {
-            if (dragged.id !== category.id) {
-                moveCategory(dragged.id, category.id);
+        drop: (draggedItem: { id: string }) => {
+            if (draggedItem.id !== category.id) {
+                moveCategory(draggedItem.id, category.id);
             }
         },
+        collect: (monitor) => ({
+            isOver: monitor.isOver(),
+        }),
     });
+
+    const ref = (node: HTMLDivElement) => {
+        drag(node);
+        drop(node);
+    };
 
     return (/* @ts-ignore */
         <li ref={(node) => ref(drop(node))} className={`space-y-2 ${isDragging ? "opacity-50" : "opacity-100"}`}>

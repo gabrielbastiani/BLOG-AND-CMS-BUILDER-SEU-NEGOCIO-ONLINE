@@ -33,7 +33,8 @@ export default function AddCategory() {
     const [photo, setPhoto] = useState<File | null>(null);
 
     const refetchCategories = () => {
-        const event = new CustomEvent("refetchCategories");
+        // Alterado para usar uma referência estável
+        const event = new Event("refetchCategories");
         window.dispatchEvent(event);
     };
 
