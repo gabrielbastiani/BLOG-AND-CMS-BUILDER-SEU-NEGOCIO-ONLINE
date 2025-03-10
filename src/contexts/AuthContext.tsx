@@ -5,6 +5,7 @@ import { api } from '../services/apiClient';
 import { toast } from 'react-toastify';
 import { useCookies } from 'react-cookie';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 type AuthContextData = {
     user?: UserProps;
@@ -34,10 +35,14 @@ type AuthProviderProps = {
 }
 
 interface ConfigProps {
-    name_blog: string;
-    logo: string;
-    email_blog: string;
-    phone: string;
+    name_blog?: string;
+    logo?: string;
+    email_blog?: string;
+    phone?: string;
+    favicon?: string;
+    description_blog?: string;
+    author_blog?: string;
+    privacy_policies?: string;
 }
 
 export const AuthContext = createContext({} as AuthContextData);
@@ -50,8 +55,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name_blog: "",
         logo: "",
         email_blog: "",
-        phone: ""
-    });    
+        phone: "",
+        favicon: "",
+        description_blog: "",
+        author_blog: "",
+        privacy_policies: "",
+    });
     const [cookies, setCookie, removeCookie] = useCookies(['@cmsblog.token']);
     const [cookiesId, setCookieId, removeCookieId] = useCookies(['@idUser']);
     const [user, setUser] = useState<UserProps>();
@@ -61,19 +70,47 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() => {
         async function loadConfigs() {
             try {
-                const { data } = await api.get(`/configuration_blog/get_configs`);
-                
-                if (data) {
-                    setConfigs(data);
-                } else {
-                    console.warn("Nenhuma configuração foi retornada pela API.");                    
+                const response = await api.get(`/configuration_blog/get_configs`);
+
+                if (response.status === 200) {
+                    const defaultConfigs: ConfigProps = {
+                        name_blog: "Blog Padrão",
+                        logo: "../assets/no-image-icon-6.png",
+                        email_blog: "contato@blog.com",
+                        phone: "(00) 0000-0000",
+                        favicon: "../../src/app/favicon.ico",
+                        description_blog: "Sem descrição",
+                        author_blog: "Seu nome",
+                        privacy_policies: "Sua politica"
+                    };
+
+                    setConfigs(response.data || defaultConfigs);
                 }
             } catch (error) {
-                console.error("Erro ao carregar configurações:", error);
+                // Tratamento de tipo seguro
+                if (axios.isAxiosError(error)) {
+                    if (error.response?.status === 404) {
+                        console.warn("Endpoint não encontrado. Usando configurações padrão.");
+                        setConfigs({
+                            name_blog: "Blog Padrão",
+                            logo: "../assets/no-image-icon-6.png",
+                            email_blog: "contato@blog.com",
+                            phone: "(00) 0000-0000",
+                            favicon: "../../src/app/favicon.ico",
+                            description_blog: "Sem descrição",
+                            author_blog: "Seu nome",
+                            privacy_policies: "Sua politica"
+                        });
+                    } else {
+                        console.error("Erro na requisição:", error.message);
+                    }
+                } else {
+                    console.error("Erro desconhecido:", error);
+                }
             }
         }
         loadConfigs();
-    }, []);    
+    }, []);
 
     async function signIn({ email, password }: SignInProps): Promise<boolean> {
         setLoadingAuth(true);

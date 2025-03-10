@@ -1,3 +1,4 @@
+import noImage from '../../public/no-image.png';
 import BlogLayout from "./components/blog_components/blogLayout";
 import { Footer } from "./components/blog_components/footer";
 import { Navbar } from "./components/blog_components/navbar";
@@ -18,7 +19,7 @@ export async function generateMetadata(
     title: "Blog",
     description: "Veja o melhor conteudo na internet.",
     openGraph: {
-      images: [{ url: '../assets/no-image-icon-6.png' }]
+      images: [{ url: noImage.src }]
     }
   };
 
@@ -26,8 +27,7 @@ export async function generateMetadata(
     const apiClient = setupAPIClient();
 
     if (!API_URL || !BLOG_URL) {
-      console.error('Variáveis de ambiente não configuradas');
-      return fallbackMetadata;
+      throw new Error('Variáveis de ambiente não configuradas!');
     }
 
     const response = await apiClient.get('/configuration_blog/get_configs');

@@ -7,12 +7,13 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AuthContext } from '../../contexts/AuthContext'
-import { useContext, useRef, useState } from 'react'
+import { useContext, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LoadingRequest } from '../components/loadingRequest'
-import { toast } from 'react-toastify'
-import noImage from '../../assets/no-image-icon-6.png'
+import noImage from '../../../public/no-image.png'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").nonempty("O campo email é obrigatório"),
@@ -25,8 +26,6 @@ export default function Login() {
 
     const router = useRouter();
     const { signIn, configs } = useContext(AuthContext);
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const [loading, setLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -63,7 +62,6 @@ export default function Login() {
 
     }
 
-
     return (
         <>
             {loading ?
@@ -74,10 +72,11 @@ export default function Login() {
                         <div className='mb-6 max-w-sm w-full'>
                             {configs?.logo ?
                                 <Image
-                                    src={configs?.logo ? `${API_URL}files/${configs?.logo}` : noImage}
+                                    src={configs?.logo ? `${API_URL}files/${configs.logo}` : noImage}
                                     alt='logo-do-blog'
                                     width={500}
-                                    height={500}
+                                    height={300}
+                                    priority
                                 />
                                 :
                                 null

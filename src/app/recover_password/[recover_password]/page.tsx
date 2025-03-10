@@ -14,7 +14,7 @@ import { LoadingRequest } from '../../components/loadingRequest'
 import { toast } from 'react-toastify'
 import { setupAPIClient } from '@/services/api'
 import { AuthContext } from '@/contexts/AuthContext'
-import noImage from '../../../assets/no-image-icon-6.png'
+import noImage from '../../../../public/no-image.png'
 
 const passwordSchema = z.object({
     password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
