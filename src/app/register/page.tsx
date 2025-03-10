@@ -14,27 +14,29 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { LoadingRequest } from '../components/loadingRequest'
 import Login from '../login/page'
 import { FiUpload } from 'react-icons/fi'
+import ReCAPTCHA from 'react-google-recaptcha'
+
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
     name: z.string().nonempty("O campo nome é obrigatório"),
     email: z.string().email("Insira um email válido").nonempty("O campo email é obrigatório"),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres").nonempty("O campo senha é obrigatório"),
     logo: z.string().optional(),
-    name_blog: z.string().optional(),
-    email_blog: z.string().optional()
+    name_blog: z.string().nonempty("O nome do blog é obrigatório"),
+    email_blog: z.string().email("Insira um email válido para o blog").nonempty("O email do blog é obrigatório")
 });
 
 type FormData = z.infer<typeof schema>
 
 export default function Register() {
-
     const router = useRouter();
-
     const [superAdmin, setSuperAdmin] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [logo, setLogo] = useState<File | null>(null);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     useEffect(() => {
         const apiClient = setupAPIClient();
@@ -57,7 +59,7 @@ export default function Register() {
         mode: "onChange"
     });
 
-    function handleFile(e: ChangeEvent<HTMLInputElement>) {
+    const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
 
         const image = e.target.files[0];
@@ -69,68 +71,54 @@ export default function Register() {
         } else {
             toast.error("Formato de imagem inválido. Selecione uma imagem JPEG ou PNG.");
         }
-    }
+    };
 
-    async function onSubmit(data: FormData) {
+    const onReCAPTCHAChange = (token: string | null) => {
+        setRecaptchaToken(token);
+    };
+
+    const onSubmit = async (data: FormData) => {
         setLoading(true);
-        const apiClient = setupAPIClient();
-        try {
-            if (logo === null) {
-                toast.error("A imagem da logo do seu blog é obrigatória para o cadastro");
-                return;
-            }
 
-            if (data.name_blog === null) {
-                toast.error("O nome do seu blog é obrigatório para o cadastro");
-                return;
-            }
+        if (!recaptchaToken) {
+            toast.error("Por favor, complete a verificação reCAPTCHA");
+            setLoading(false);
+            return;
+        }
 
-            if (data.email_blog === null) {
-                toast.error("O email do seu blog é obrigatório para o cadastro");
-                return;
-            }
-
-            const formData = new FormData();
-
-            formData.append("name_blog", data.name_blog || "");
-            formData.append("email_blog", data.email_blog || "");
-
-            if (logo) {
-                formData.append("logo", logo);
-            }
-            
-            await apiClient.post('/configuration_blog/create', formData);
-
-            toast.success('Cadastro do blog feito com sucesso!');
-
-        } catch (error) {
-            toast.error("Erro ao cadstrar dados do blog.");
-            console.log(error)
+        if (!logo) {
+            toast.error("A imagem da logo é obrigatória");
+            setLoading(false);
+            return;
         }
 
         try {
             const apiClient = setupAPIClient();
 
-            setTimeout(async () => {
-                await apiClient.post('/user/create', { name: data?.name, email: data?.email, password: data?.password });
-            }, 3000);
+            const blogFormData = new FormData();
+            blogFormData.append("name_blog", data.name_blog);
+            blogFormData.append("email_blog", data.email_blog);
+            blogFormData.append("logo", logo);
 
-            toast.success('Cadastro feito com sucesso!');
+            await apiClient.post('/configuration_blog/create', blogFormData);
 
-            setLoading(false);
+            await apiClient.post('/user/create', {
+                name: data.name,
+                email: data.email,
+                password: data.password
+            });
 
+            toast.success('Cadastro realizado com sucesso!');
             router.push('/login');
-
         } catch (error) {
-            if (error instanceof Error && 'response' in error && error.response) {
-                console.log((error as any).response.data);
-                toast.error('Ops erro ao deletar o usuario.');
-            } else {
-                console.error(error);
-                toast.error('Erro desconhecido.');
-            }
+            console.error(error);
+            toast.error('Erro ao realizar cadastro');
+            recaptchaRef.current?.reset();
+            setRecaptchaToken(null);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     return (
         <>
@@ -170,11 +158,21 @@ export default function Register() {
                                     </div>
 
                                     <div className='mb-3'>
-                                        {/* Input para Imagem */}
                                         <label className="relative w-full h-[250px] rounded-lg cursor-pointer flex justify-center bg-gray-200 overflow-hidden">
-                                            <input type="file" accept="image/png, image/jpeg" onChange={handleFile} className="hidden" />
+                                            <input
+                                                type="file"
+                                                accept="image/png, image/jpeg"
+                                                onChange={handleFile}
+                                                className="hidden"
+                                            />
                                             {avatarUrl ? (
-                                                <Image src={avatarUrl} alt="Preview da imagem" width={250} height={200} className="w-full h-full" />
+                                                <Image
+                                                    src={avatarUrl}
+                                                    alt="Preview da imagem"
+                                                    width={250}
+                                                    height={200}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             ) : (
                                                 <div className="flex items-center justify-center w-full h-full bg-gray-300">
                                                     <FiUpload size={30} color="#ff6700" />
@@ -216,6 +214,15 @@ export default function Register() {
                                         />
                                     </div>
 
+                                    <div className="mb-4">
+                                        <ReCAPTCHA
+                                            ref={recaptchaRef}
+                                            sitekey={RECAPTCHA_KEY!}
+                                            onChange={onReCAPTCHAChange}
+                                            theme="light"
+                                        />
+                                    </div>
+
                                     <button
                                         type='submit'
                                         className='bg-red-600 w-full rounded-md text-white h-10 font-medium'
@@ -224,10 +231,9 @@ export default function Register() {
                                     </button>
                                 </form>
 
-                                <Link href="/login">
+                                <Link href="/login" className="text-white hover:underline">
                                     Já possui uma conta? Faça o login!
                                 </Link>
-
                             </div>
                         </Container>
                     }

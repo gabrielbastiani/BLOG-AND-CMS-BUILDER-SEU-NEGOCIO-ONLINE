@@ -1,4 +1,4 @@
-import { ChangeEvent, useState, useEffect, useContext } from "react";
+import { ChangeEvent, useState, useEffect, useContext, useRef } from "react";
 import Image from "next/image";
 import { FiUpload } from "react-icons/fi";
 import { useForm } from "react-hook-form";
@@ -8,6 +8,10 @@ import { toast } from "react-toastify";
 import { setupAPIClientBlog } from "@/services/api_blog";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
 import { Input } from "@/app/components/input";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
   name: z.string().optional(),
@@ -24,13 +28,17 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
 
   const { updateUser, signOut, user } = useContext(AuthContextBlog);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   const [avatarUrl, setAvatarUrl] = useState(
     user?.image_user ? `${API_URL}files/${user.image_user}` : ""
   );
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const onReCAPTCHAChange = (token: string | null) => {
+    setRecaptchaToken(token);
+  };
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -66,6 +74,10 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
 
       const apiClientBlog = setupAPIClientBlog();
       const formData = new FormData();
+      if (!recaptchaToken) {
+        toast.error("Por favor, complete a verificação reCAPTCHA");
+        return;
+      }
 
       if (!user) {
         toast.error("Usuário não encontrado!");
@@ -95,6 +107,8 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
       onClose();
     } catch (error) {
       toast.error("Erro ao atualizar!");
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -147,6 +161,15 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
             error={errors.email?.message}
             register={register}
           />
+
+          <div className="mb-4">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={RECAPTCHA_KEY!}
+              onChange={onReCAPTCHAChange}
+              theme="light"
+            />
+          </div>
 
           <button
             type="submit"

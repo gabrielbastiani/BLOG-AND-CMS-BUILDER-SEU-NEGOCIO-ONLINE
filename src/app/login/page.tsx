@@ -7,13 +7,16 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AuthContext } from '../../contexts/AuthContext'
-import { useContext, useState } from 'react'
+import { useContext, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LoadingRequest } from '../components/loadingRequest'
 import noImage from '../../../public/no-image.png'
+import ReCAPTCHA from 'react-google-recaptcha'
+import { toast } from 'react-toastify'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").nonempty("O campo email é obrigatório"),
@@ -26,6 +29,8 @@ export default function Login() {
 
     const router = useRouter();
     const { signIn, configs } = useContext(AuthContext);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const [loading, setLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -33,9 +38,19 @@ export default function Login() {
         mode: "onChange"
     });
 
+    const onReCAPTCHAChange = (token: string | null) => {
+        setRecaptchaToken(token);
+    };
+
     async function onSubmit(data: FormData) {
 
         setLoading(true);
+
+        if (!recaptchaToken) {
+            toast.error("Por favor, complete a verificação reCAPTCHA");
+            setLoading(false);
+            return;
+        }
 
         const email = data?.email;
         const password = data?.password;
@@ -56,6 +71,8 @@ export default function Login() {
 
         } catch (error) {
             console.error(error);
+            recaptchaRef.current?.reset();
+            setRecaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -106,6 +123,15 @@ export default function Login() {
                                     name="password"
                                     error={errors.password?.message}
                                     register={register}
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    sitekey={RECAPTCHA_KEY!}
+                                    onChange={onReCAPTCHAChange}
+                                    theme="light"
                                 />
                             </div>
 

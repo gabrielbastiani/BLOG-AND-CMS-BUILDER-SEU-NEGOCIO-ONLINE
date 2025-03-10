@@ -8,6 +8,10 @@ import { setupAPIClientBlog } from "@/services/api_blog";
 import { Input } from "@/app/components/input";
 import { FiUpload } from "react-icons/fi";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const schema = z.object({
     name: z.string().min(1, "O nome é obrigatório"),
@@ -24,8 +28,6 @@ interface ModalCreateUserProps {
 
 export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, loginModal }) => {
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
     const { user } = useContext(AuthContextBlog);
 
     const [avatarUrl, setAvatarUrl] = useState(
@@ -34,6 +36,12 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
     const [photo, setPhoto] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+    const onReCAPTCHAChange = (token: string | null) => {
+        setRecaptchaToken(token);
+    };
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -61,6 +69,12 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
 
     async function onSubmitCreate(data: FormData) {
         try {
+            if (!recaptchaToken) {
+                toast.error("Por favor, complete a verificação reCAPTCHA");
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
 
             const apiClientBlog = setupAPIClientBlog();
@@ -88,6 +102,8 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
         } catch (error) {
             console.log(error)
             toast.error("Erro ao cadastrar!");
+            recaptchaRef.current?.reset();
+            setRecaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -167,6 +183,15 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
                             />
                             Quer receber as novidades em seu e-mail?
                         </label>
+
+                        <div className="mb-4">
+                            <ReCAPTCHA
+                                ref={recaptchaRef}
+                                sitekey={RECAPTCHA_KEY!}
+                                onChange={onReCAPTCHAChange}
+                                theme="light"
+                            />
+                        </div>
 
                         <button
                             type="submit"

@@ -15,6 +15,10 @@ import { toast } from 'react-toastify'
 import { setupAPIClient } from '@/services/api'
 import { AuthContext } from '@/contexts/AuthContext'
 import noImage from '../../../../public/no-image.png'
+import ReCAPTCHA from 'react-google-recaptcha';
+
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const passwordSchema = z.object({
     password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
@@ -28,20 +32,30 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function RecoverPassword({ params }: { params: { recover_password: string } }) {
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
     const router = useRouter();
     const { configs } = useContext(AuthContext);
 
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
     const [loading, setLoading] = useState(false);
 
     const { register, handleSubmit, formState: { errors } } = useForm<PasswordFormValues>({
         resolver: zodResolver(passwordSchema),
     });
 
+    const onReCAPTCHAChange = (token: string | null) => {
+        setRecaptchaToken(token);
+    };
+
     async function onSubmit(data: PasswordFormValues) {
 
         setLoading(true);
+
+        if (!recaptchaToken) {
+            toast.error("Por favor, complete a verificação reCAPTCHA");
+            setLoading(false);
+            return;
+        }
 
         try {
             const apiClient = setupAPIClient();
@@ -56,6 +70,8 @@ export default function RecoverPassword({ params }: { params: { recover_password
         } catch (error) {/* @ts-ignore */
             console.log(error.response.data);
             toast.error('Erro ao cadastrar!');
+            recaptchaRef.current?.reset();
+            setRecaptchaToken(null);
         }
 
     }
@@ -104,6 +120,15 @@ export default function RecoverPassword({ params }: { params: { recover_password
                                     name="password"
                                     error={errors.confirmPassword?.message}
                                     register={register}
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    sitekey={RECAPTCHA_KEY!}
+                                    onChange={onReCAPTCHAChange}
+                                    theme="light"
                                 />
                             </div>
 

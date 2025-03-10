@@ -6,6 +6,9 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import { Input } from "@/app/components/input";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").optional(),
@@ -26,13 +29,16 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
         resolver: zodResolver(schema),
     });
 
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-    const onChangeCaptcha = (token: string | null) => setCaptchaToken(token);
+    const onReCAPTCHAChange = (token: string | null) => {
+        setRecaptchaToken(token);
+    };
 
     async function onSubmit(data: FormData) {
-        if (!captchaToken) {
-            toast.error("Por favor, verifique o reCAPTCHA.");
+        if (!recaptchaToken) {
+            toast.error("Por favor, complete a verificação reCAPTCHA");
             return;
         }
 
@@ -51,6 +57,8 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
 
         } catch (error) {
             console.error(error);
+            recaptchaRef.current?.reset();
+            setRecaptchaToken(null);
         }
     }
 
@@ -82,6 +90,15 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
                                 name="password"
                                 error={errors.password?.message}
                                 register={register}
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <ReCAPTCHA
+                                ref={recaptchaRef}
+                                sitekey={RECAPTCHA_KEY!}
+                                onChange={onReCAPTCHAChange}
+                                theme="light"
                             />
                         </div>
 

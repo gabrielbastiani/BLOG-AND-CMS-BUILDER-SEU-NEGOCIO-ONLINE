@@ -141,7 +141,6 @@ function hasAccessToRoute(userRole: string, pathname: string): boolean {/* @ts-i
 
 export const config = {
   matcher: [
-    '/politicas_de_privacidade',
     '/configurations/seo_pages',
     '/configurations',
     '/marketing_publication/config_interval_banner',
