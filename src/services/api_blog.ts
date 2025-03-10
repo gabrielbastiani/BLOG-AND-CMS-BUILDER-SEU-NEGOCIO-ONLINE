@@ -2,6 +2,8 @@ import axios from 'axios';
 import Cookies from 'universal-cookie';
 import { toast } from 'react-toastify';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 function signOut() {
     try {
         let remove_cookie_user = new Cookies();
@@ -21,7 +23,7 @@ export function setupAPIClientBlog() {
     let cookies = cookie_user.get('@blog.token');
 
     const api_blog = axios.create({
-        baseURL: 'https://apiblog.builderseunegocioonline.com.br',
+        baseURL: API_URL,
         headers: {
             Authorization: `Bearer ${cookies}`
         }
