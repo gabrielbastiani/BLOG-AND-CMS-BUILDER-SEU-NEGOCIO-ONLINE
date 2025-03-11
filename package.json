@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "PORT=1122 next start",
     "lint": "next lint",
     "postbuild": "next-sitemap --config next-sitemap.config.js"
   },
