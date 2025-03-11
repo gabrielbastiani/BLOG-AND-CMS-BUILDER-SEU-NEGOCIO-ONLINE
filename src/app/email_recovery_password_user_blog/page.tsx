@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation'
 import { Container } from '../components/container'
 import { Input } from '../components/input'
@@ -14,6 +15,17 @@ import { toast } from 'react-toastify'
 import { setupAPIClient } from '@/services/api'
 import { AuthContext } from '@/contexts/AuthContext'
 import noImage from '../../assets/no-image-icon-6.png'
+const CognitiveChallenge = dynamic(
+    () => import('../components/cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                Carregando desafio de segurança...
+            </div>
+        )
+    }
+);
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").nonempty("O campo email é obrigatório"),
@@ -25,22 +37,21 @@ export default function Emailrecoverypassworduserblog() {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    const [cognitiveValid, setCognitiveValid] = useState(false);
     const { configs } = useContext(AuthContext);
     const router = useRouter()
-
     const [loading, setLoading] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
         mode: "onChange"
     });
 
-    const onChangeCaptcha = (token: string | null) => {
-        setCaptchaToken(token);
-    };
-
     async function onSubmit(data: FormData) {
+
+        if (!cognitiveValid) {
+            toast.error('Complete o desafio de segurança antes de enviar');
+            return;
+        }
 
         setLoading(true);
 
@@ -105,11 +116,17 @@ export default function Emailrecoverypassworduserblog() {
                                 />
                             </div>
 
+                            <CognitiveChallenge
+                                onValidate={(isValid) => setCognitiveValid(isValid)}
+                            />
+
                             <button
                                 type='submit'
-                                className='bg-red-600 w-full rounded-md text-white h-10 font-medium'
+                                className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                disabled={!cognitiveValid || loading}
                             >
-                                Enviar
+                                {loading ? 'Enviando...' : 'Enviar'}
                             </button>
                         </form>
 
