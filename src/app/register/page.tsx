@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation'
 import { Container } from '../components/container'
 import { Input } from '../components/input'
@@ -10,13 +11,21 @@ import { setupAPIClient } from '../../services/api'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { LoadingRequest } from '../components/loadingRequest'
 import Login from '../login/page'
 import { FiUpload } from 'react-icons/fi'
-import ReCAPTCHA from 'react-google-recaptcha'
-
-const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+const CognitiveChallenge = dynamic(
+    () => import('../components/cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+    { 
+        ssr: false,
+        loading: () => (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                Carregando desafio de segurança...
+            </div>
+        )
+    }
+);
 
 const schema = z.object({
     name: z.string().nonempty("O campo nome é obrigatório"),
@@ -31,12 +40,11 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
     const router = useRouter();
+    const [cognitiveValid, setCognitiveValid] = useState(false);
     const [superAdmin, setSuperAdmin] = useState([]);
     const [loading, setLoading] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [logo, setLogo] = useState<File | null>(null);
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     useEffect(() => {
         const apiClient = setupAPIClient();
@@ -73,18 +81,14 @@ export default function Register() {
         }
     };
 
-    const onReCAPTCHAChange = (token: string | null) => {
-        setRecaptchaToken(token);
-    };
-
     const onSubmit = async (data: FormData) => {
-        setLoading(true);
 
-        if (!recaptchaToken) {
-            toast.error("Por favor, complete a verificação reCAPTCHA");
-            setLoading(false);
+        if (!cognitiveValid) {
+            toast.error('Complete o desafio de segurança antes de enviar');
             return;
         }
+
+        setLoading(true);
 
         if (!logo) {
             toast.error("A imagem da logo é obrigatória");
@@ -113,8 +117,6 @@ export default function Register() {
         } catch (error) {
             console.error(error);
             toast.error('Erro ao realizar cadastro');
-            recaptchaRef.current?.reset();
-            setRecaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -214,20 +216,17 @@ export default function Register() {
                                         />
                                     </div>
 
-                                    <div className="mb-4">
-                                        <ReCAPTCHA
-                                            ref={recaptchaRef}
-                                            sitekey={RECAPTCHA_KEY!}
-                                            onChange={onReCAPTCHAChange}
-                                            theme="light"
-                                        />
-                                    </div>
+                                    <CognitiveChallenge
+                                        onValidate={(isValid) => setCognitiveValid(isValid)}
+                                    />
 
                                     <button
                                         type='submit'
-                                        className='bg-red-600 w-full rounded-md text-white h-10 font-medium'
+                                        className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                        disabled={!cognitiveValid || loading}
                                     >
-                                        Cadastrar
+                                        {loading ? 'Carregando...' : 'Cadastrar'}
                                     </button>
                                 </form>
 

@@ -35,13 +35,6 @@ export function CommentsSection({ post_id }: CommentProps) {
     const { isAuthenticated, user } = useContext(AuthContextBlog);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
-    if (!RECAPTCHA_SITE_KEY) {
-        throw new Error(
-            "A variável NEXT_PUBLIC_RECAPTCHA_SITE_KEY não está definida."
-        );
-    }
 
     const [comments, setComments] = useState<CommentsProps[]>([]);
     const [newComment, setNewComment] = useState<string>("");

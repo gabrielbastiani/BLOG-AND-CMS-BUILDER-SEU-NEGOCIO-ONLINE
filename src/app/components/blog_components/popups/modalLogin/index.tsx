@@ -1,4 +1,5 @@
-import React, { useContext, useRef, useState } from "react";
+import dynamic from 'next/dynamic';
+import React, { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -6,9 +7,17 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import { Input } from "@/app/components/input";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
-import ReCAPTCHA from "react-google-recaptcha";
-
-const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+const CognitiveChallenge = dynamic(
+    () => import('../../../cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                Carregando desafio de segurança...
+            </div>
+        )
+    }
+);
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").optional(),
@@ -23,24 +32,20 @@ interface ModalLoginProps {
 
 export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
 
+    const [cognitiveValid, setCognitiveValid] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { signIn } = useContext(AuthContextBlog);
-
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
     });
 
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-    const onReCAPTCHAChange = (token: string | null) => {
-        setRecaptchaToken(token);
-    };
-
     async function onSubmit(data: FormData) {
-        if (!recaptchaToken) {
-            toast.error("Por favor, complete a verificação reCAPTCHA");
+        if (!cognitiveValid) {
+            toast.error('Complete o desafio de segurança antes de enviar');
             return;
         }
+
+        setLoading(true);
 
         const email = data?.email;
         const password = data?.password;
@@ -57,8 +62,8 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
 
         } catch (error) {
             console.error(error);
-            recaptchaRef.current?.reset();
-            setRecaptchaToken(null);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -94,20 +99,19 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({ onClose }) => {
                         </div>
 
                         <div className="mb-4">
-                            <ReCAPTCHA
-                                ref={recaptchaRef}
-                                sitekey={RECAPTCHA_KEY!}
-                                onChange={onReCAPTCHAChange}
-                                theme="light"
+                            <CognitiveChallenge
+                                onValidate={(isValid) => setCognitiveValid(isValid)}
                             />
                         </div>
 
                         <div>
                             <button
                                 type='submit'
-                                className='bg-green-600 w-full rounded-md text-white h-10 font-medium mb-5'
+                                className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                disabled={!cognitiveValid || loading}
                             >
-                                Acessar
+                                {loading ? 'Acessando...' : 'Acessar'}
                             </button>
 
                             <Link

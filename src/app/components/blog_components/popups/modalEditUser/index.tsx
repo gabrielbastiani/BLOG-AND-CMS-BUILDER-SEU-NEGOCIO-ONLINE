@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import { ChangeEvent, useState, useEffect, useContext, useRef } from "react";
 import Image from "next/image";
 import { FiUpload } from "react-icons/fi";
@@ -8,10 +9,19 @@ import { toast } from "react-toastify";
 import { setupAPIClientBlog } from "@/services/api_blog";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
 import { Input } from "@/app/components/input";
-import ReCAPTCHA from "react-google-recaptcha";
+const CognitiveChallenge = dynamic(
+  () => import('../../../cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        Carregando desafio de segurança...
+      </div>
+    )
+  }
+);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
   name: z.string().optional(),
@@ -26,6 +36,7 @@ interface ModalEditUserProps {
 
 export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
 
+  const [cognitiveValid, setCognitiveValid] = useState(false);
   const { updateUser, signOut, user } = useContext(AuthContextBlog);
 
   const [avatarUrl, setAvatarUrl] = useState(
@@ -33,12 +44,6 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
   );
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  const onReCAPTCHAChange = (token: string | null) => {
-    setRecaptchaToken(token);
-  };
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -70,14 +75,15 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
 
   const onSubmit = async (data: FormData) => {
     try {
+      if (!cognitiveValid) {
+        toast.error('Complete o desafio de segurança antes de enviar');
+        return;
+      }
+
       setLoading(true);
 
       const apiClientBlog = setupAPIClientBlog();
       const formData = new FormData();
-      if (!recaptchaToken) {
-        toast.error("Por favor, complete a verificação reCAPTCHA");
-        return;
-      }
 
       if (!user) {
         toast.error("Usuário não encontrado!");
@@ -107,8 +113,6 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
       onClose();
     } catch (error) {
       toast.error("Erro ao atualizar!");
-      recaptchaRef.current?.reset();
-      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -162,21 +166,17 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
             register={register}
           />
 
-          <div className="mb-4">
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={RECAPTCHA_KEY!}
-              onChange={onReCAPTCHAChange}
-              theme="light"
-            />
-          </div>
+          <CognitiveChallenge
+            onValidate={(isValid) => setCognitiveValid(isValid)}
+          />
 
           <button
-            type="submit"
-            className="w-full px-6 py-3 bg-backgroundButton text-white rounded hover:bg-hoverButtonBackground transition duration-300"
-            disabled={loading}
+            type='submit'
+            className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            disabled={!cognitiveValid || loading}
           >
-            {loading ? "Salvando..." : "Salvar alterações"}
+            {loading ? 'Salvando...' : 'Salvar'}
           </button>
 
           <button

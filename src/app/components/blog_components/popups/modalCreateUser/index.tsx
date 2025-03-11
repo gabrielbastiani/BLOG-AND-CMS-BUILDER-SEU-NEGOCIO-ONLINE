@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import { useState, ChangeEvent, useContext, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,9 +9,18 @@ import { setupAPIClientBlog } from "@/services/api_blog";
 import { Input } from "@/app/components/input";
 import { FiUpload } from "react-icons/fi";
 import { AuthContextBlog } from "@/contexts/AuthContextBlog";
-import ReCAPTCHA from "react-google-recaptcha";
+const CognitiveChallenge = dynamic(
+    () => import('../../../cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                Carregando desafio de segurança...
+            </div>
+        )
+    }
+);
 
-const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const schema = z.object({
@@ -28,20 +38,14 @@ interface ModalCreateUserProps {
 
 export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, loginModal }) => {
 
+    const [cognitiveValid, setCognitiveValid] = useState(false);
     const { user } = useContext(AuthContextBlog);
-
     const [avatarUrl, setAvatarUrl] = useState(
         user?.image_user ? `${API_URL}files/${user.image_user}` : ""
     );
     const [photo, setPhoto] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-    const onReCAPTCHAChange = (token: string | null) => {
-        setRecaptchaToken(token);
-    };
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -69,9 +73,8 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
 
     async function onSubmitCreate(data: FormData) {
         try {
-            if (!recaptchaToken) {
-                toast.error("Por favor, complete a verificação reCAPTCHA");
-                setLoading(false);
+            if (!cognitiveValid) {
+                toast.error('Complete o desafio de segurança antes de enviar');
                 return;
             }
 
@@ -102,8 +105,6 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
         } catch (error) {
             console.log(error)
             toast.error("Erro ao cadastrar!");
-            recaptchaRef.current?.reset();
-            setRecaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -184,21 +185,17 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
                             Quer receber as novidades em seu e-mail?
                         </label>
 
-                        <div className="mb-4">
-                            <ReCAPTCHA
-                                ref={recaptchaRef}
-                                sitekey={RECAPTCHA_KEY!}
-                                onChange={onReCAPTCHAChange}
-                                theme="light"
-                            />
-                        </div>
+                        <CognitiveChallenge
+                            onValidate={(isValid) => setCognitiveValid(isValid)}
+                        />
 
                         <button
-                            type="submit"
-                            className="w-full md:w-80 px-6 py-3 bg-backgroundButton text-white rounded hover:bg-hoverButtonBackground transition duration-300"
-                            disabled={loading}
+                            type='submit'
+                            className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                            disabled={!cognitiveValid || loading}
                         >
-                            {loading ? "Cadastrando..." : "Cadastrar"}
+                            {loading ? 'Carregando...' : 'Cadastrar'}
                         </button>
 
                         <button

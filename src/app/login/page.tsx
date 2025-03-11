@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation'
 import { Container } from '../components/container'
 import { Input } from '../components/input'
@@ -12,11 +13,20 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { LoadingRequest } from '../components/loadingRequest'
 import noImage from '../../../public/no-image.png'
-import ReCAPTCHA from 'react-google-recaptcha'
 import { toast } from 'react-toastify'
+const CognitiveChallenge = dynamic(
+    () => import('../components/cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                Carregando desafio de segurança...
+            </div>
+        )
+    }
+);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const RECAPTCHA_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").nonempty("O campo email é obrigatório"),
@@ -27,30 +37,23 @@ type FormData = z.infer<typeof schema>
 
 export default function Login() {
 
+    const [cognitiveValid, setCognitiveValid] = useState(false);
     const router = useRouter();
     const { signIn, configs } = useContext(AuthContext);
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
-
     const [loading, setLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
         mode: "onChange"
     });
 
-    const onReCAPTCHAChange = (token: string | null) => {
-        setRecaptchaToken(token);
-    };
-
     async function onSubmit(data: FormData) {
 
-        setLoading(true);
-
-        if (!recaptchaToken) {
-            toast.error("Por favor, complete a verificação reCAPTCHA");
-            setLoading(false);
+        if (!cognitiveValid) {
+            toast.error('Complete o desafio de segurança antes de enviar');
             return;
         }
+
+        setLoading(true);
 
         const email = data?.email;
         const password = data?.password;
@@ -71,8 +74,6 @@ export default function Login() {
 
         } catch (error) {
             console.error(error);
-            recaptchaRef.current?.reset();
-            setRecaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -127,19 +128,18 @@ export default function Login() {
                             </div>
 
                             <div className="mb-4">
-                                <ReCAPTCHA
-                                    ref={recaptchaRef}
-                                    sitekey={RECAPTCHA_KEY!}
-                                    onChange={onReCAPTCHAChange}
-                                    theme="light"
+                                <CognitiveChallenge
+                                    onValidate={(isValid) => setCognitiveValid(isValid)}
                                 />
                             </div>
 
                             <button
                                 type='submit'
-                                className='bg-red-600 w-full rounded-md text-white h-10 font-medium'
+                                className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                disabled={!cognitiveValid || loading}
                             >
-                                Acessar
+                                {loading ? 'Acessando...' : 'Acessar'}
                             </button>
                         </form>
 
