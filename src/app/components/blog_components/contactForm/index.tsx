@@ -1,11 +1,23 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import dynamic from 'next/dynamic';
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { setupAPIClient } from "@/services/api";
+const CognitiveChallenge = dynamic(
+  () => import('../../../components/cognitiveChallenge/index').then(mod => mod.CognitiveChallenge),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        Carregando desafio de segurança...
+      </div>
+    )
+  }
+);
 
 const contactFormSchema = z.object({
   name_user: z.string().min(1, "O nome é obrigatório").max(50, "Máximo de 50 caracteres"),
@@ -18,6 +30,9 @@ type ContactFormInputs = z.infer<typeof contactFormSchema>;
 
 export default function ContactForm() {
 
+  const [cognitiveValid, setCognitiveValid] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -28,6 +43,14 @@ export default function ContactForm() {
   });
 
   async function onSubmit(data: ContactFormInputs) {
+
+    if (!cognitiveValid) {
+      toast.error('Complete o desafio de segurança antes de enviar');
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const apiClient = setupAPIClient();
 
@@ -38,12 +61,15 @@ export default function ContactForm() {
         menssage: data.message
       });
 
-      // Reseta o formulário
+      setLoading(false);
+
       reset();
       toast.success("Formulario enviado com sucesso.");
     } catch (error) {
       console.error("Erro ao enviar formulário:", error);
       toast.error("Erro ao enviar o formulario.")
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,13 +142,18 @@ export default function ContactForm() {
         )}
       </div>
 
+      <CognitiveChallenge
+        onValidate={(isValid) => setCognitiveValid(isValid)}
+      />
+
       <div className="flex items-center justify-between">
         <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-backgroundButton hover:bg-hoverButtonBackground text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          type='submit'
+          className={`bg-red-600 w-full rounded-md text-white h-10 font-medium ${!cognitiveValid ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          disabled={!cognitiveValid || loading}
         >
-          {isSubmitting ? "Enviando..." : "Enviar"}
+          {loading ? 'Enviando...' : 'Enviar'}
         </button>
       </div>
     </form>
