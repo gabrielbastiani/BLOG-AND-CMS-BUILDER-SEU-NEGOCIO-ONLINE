@@ -227,7 +227,7 @@ export default function Post({ params }: { params: { post_id: string } }) {
                         <input type="file" accept="image/png, image/jpeg" onChange={handleFile} className="hidden" />
                         {avatarUrl ? (
                             <Image
-                                src={imagePost ? avatarUrl : `${API_URL}files/${avatarUrl}`}
+                                src={imagePost ? avatarUrl : `${API_URL}/files/${avatarUrl}`}
                                 alt="Preview da imagem"
                                 width={450}
                                 height={300}

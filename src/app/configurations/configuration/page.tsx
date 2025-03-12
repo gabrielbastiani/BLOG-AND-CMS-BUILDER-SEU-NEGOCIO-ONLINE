@@ -219,7 +219,7 @@ export default function Configuration() {
                             <input type="file" accept="image/png, image/jpeg" onChange={handleFile} className="hidden" />
                             {logoUrl ? (
                                 <Image
-                                    src={logo ? logoUrl : `${API_URL}files/${logoUrl}`}
+                                    src={logo ? logoUrl : `${API_URL}/files/${logoUrl}`}
                                     alt="Preview da imagem"
                                     width={450}
                                     height={300}
@@ -239,7 +239,7 @@ export default function Configuration() {
                             <input type="file" accept=".ico, image/x-icon, image/vnd.microsoft.icon" onChange={handleFileFavicon} className="hidden" />
                             {faviconUrl ? (
                                 <Image
-                                    src={favicon ? faviconUrl : `${API_URL}files/${faviconUrl}`}
+                                    src={favicon ? faviconUrl : `${API_URL}/files/${faviconUrl}`}
                                     alt="Preview da imagem"
                                     width={300}
                                     height={200}

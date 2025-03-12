@@ -164,12 +164,12 @@ export default function All_users() {
                                     <>
                                         {item.image_user ? (
                                             <Image
-                                                src={`${API_URL}files/${item.image_user}`}
+                                                src={`${API_URL}/files/${item.image_user}`}
                                                 alt={item.name}
                                                 width={80}
                                                 height={80}
                                                 className="w-8 h-8 rounded-full object-cover cursor-pointer"
-                                                onClick={() => handleImageClick(`${API_URL}files/${item.image_user}`)} />
+                                                onClick={() => handleImageClick(`${API_URL}/files/${item.image_user}`)} />
                                         ) : (
                                             <div className="mr-3 w-[50px] h-[50px] rounded-full bg-gray-300 flex items-center justify-center md:w-[40px] md:h-[40px]">
                                                 <MdNotInterested color="black" size={25} />

@@ -41,7 +41,7 @@ export const ModalCreateUser: React.FC<ModalCreateUserProps> = ({ onClose, login
     const [cognitiveValid, setCognitiveValid] = useState(false);
     const { user } = useContext(AuthContextBlog);
     const [avatarUrl, setAvatarUrl] = useState(
-        user?.image_user ? `${API_URL}files/${user.image_user}` : ""
+        user?.image_user ? `${API_URL}/files/${user.image_user}` : ""
     );
     const [photo, setPhoto] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);

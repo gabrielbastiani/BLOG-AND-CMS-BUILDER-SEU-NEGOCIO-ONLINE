@@ -40,7 +40,7 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
   const { updateUser, signOut, user } = useContext(AuthContextBlog);
 
   const [avatarUrl, setAvatarUrl] = useState(
-    user?.image_user ? `${API_URL}files/${user.image_user}` : ""
+    user?.image_user ? `${API_URL}/files/${user.image_user}` : ""
   );
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export const ModalEditUser: React.FC<ModalEditUserProps> = ({ onClose }) => {
         name: user?.name || "",
         email: user?.email || "",
       });
-      setAvatarUrl(user?.image_user ? `${API_URL}files/${user.image_user}` : "");
+      setAvatarUrl(user?.image_user ? `${API_URL}/files/${user.image_user}` : "");
     }
   }, [user, reset, API_URL]);
 

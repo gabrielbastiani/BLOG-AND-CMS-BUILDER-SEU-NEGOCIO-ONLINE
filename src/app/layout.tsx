@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   let blog = null;
 
   try {
-    const response = await fetch(`${API_URL}configuration_blog/get_configs`, {
+    const response = await fetch(`${API_URL}/configuration_blog/get_configs`, {
       headers: { 'Cache-Control': 'public, max-age=3600' }
     });
 
@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 
   const faviconUrl = blog?.favicon
-    ? new URL(`files/${blog.favicon}`, API_URL).toString()
+    ? new URL(`/files/${blog.favicon}`, API_URL).toString()
     : defaultMetadata.favicon;
 
   return {

@@ -71,7 +71,7 @@ export default function ClientWrapper({
                             className="bg-white rounded-lg shadow-md hover:shadow-lg transition duration-300"
                         >
                             <Image
-                                src={`${API_URL}files/${post.image_post}`}
+                                src={`${API_URL}/files/${post.image_post}`}
                                 width={160}
                                 height={140}
                                 alt={post.title}

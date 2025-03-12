@@ -221,19 +221,19 @@ export default function All_categories() {
                                     <>
                                         {item.image_category ? (
                                             <Image
-                                                src={`${API_URL}files/${item.image_category}`}
+                                                src={`${API_URL}/files/${item.image_category}`}
                                                 alt={item.name_category}
                                                 width={100}
                                                 height={100}
                                                 className="w-8 h-8 rounded-full object-cover cursor-pointer"
-                                                onClick={() => user?.role === "EMPLOYEE" ? "" : handleImageClick(`${API_URL}files/${item.image_category}`, item.id)} />
+                                                onClick={() => user?.role === "EMPLOYEE" ? "" : handleImageClick(`${API_URL}/files/${item.image_category}`, item.id)} />
                                         ) : (
                                             <div className="mr-3 w-[50px] h-[50px] rounded-full bg-gray-300 flex items-center justify-center md:w-[40px] md:h-[40px]">
                                                 <MdNotInterested
                                                     className="cursor-pointer"
                                                     color="black"
                                                     size={25}
-                                                    onClick={() => user?.role === "EMPLOYEE" ? "" : handleImageClick(`${API_URL}files/${item.image_category}`, item.id)} />
+                                                    onClick={() => user?.role === "EMPLOYEE" ? "" : handleImageClick(`${API_URL}/files/${item.image_category}`, item.id)} />
                                             </div>
                                         )}
                                         {modalImage && (

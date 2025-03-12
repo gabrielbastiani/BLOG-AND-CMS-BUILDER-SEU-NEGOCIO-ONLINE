@@ -157,12 +157,12 @@ export default function All_posts() {
                                 render: (item) => (
                                     <>
                                         <Image
-                                            src={`${API_URL}files/${item.image_post}`}
+                                            src={`${API_URL}/files/${item.image_post}`}
                                             alt={item.title}
                                             width={100}
                                             height={100}
                                             className="w-8 h-8 rounded-full object-cover cursor-pointer"
-                                            onClick={() => handleImageClick(`${API_URL}files/${item.image_post}`)}
+                                            onClick={() => handleImageClick(`${API_URL}/files/${item.image_post}`)}
                                         />
                                         {modalImage && (
                                             <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">

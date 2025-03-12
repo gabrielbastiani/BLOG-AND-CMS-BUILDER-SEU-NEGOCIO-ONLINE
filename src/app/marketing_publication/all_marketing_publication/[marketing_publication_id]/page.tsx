@@ -184,7 +184,7 @@ export default function UpdateMarketingPublication({
                         />
                         {avatarUrl ? (
                             <Image
-                                src={imageFile ? avatarUrl : `${API_URL}files/${avatarUrl}`}
+                                src={imageFile ? avatarUrl : `${API_URL}/files/${avatarUrl}`}
                                 width={450}
                                 height={300}
                                 alt="Preview da imagem"

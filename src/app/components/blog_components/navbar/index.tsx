@@ -77,7 +77,7 @@ export function Navbar() {
                 {/* Logo */}
                 <Link href="/">
                     <Image
-                        src={configs?.logo ? `${API_URL}files/${configs?.logo}` : noImage}
+                        src={configs?.logo ? `${API_URL}/files/${configs?.logo}` : noImage}
                         width={120}
                         height={120}
                         alt="logo"
@@ -110,7 +110,7 @@ export function Navbar() {
                                     {searchResults.map((post) => (
                                         <li key={post.id} className="flex items-center gap-2 p-2 border-b hover:bg-gray-100">
                                             <Image
-                                                src={post.image_post ? `${API_URL}files/${post.image_post}` : noImage}
+                                                src={post.image_post ? `${API_URL}/files/${post.image_post}` : noImage}
                                                 alt={post.title}
                                                 width={50}
                                                 height={50}
@@ -179,7 +179,7 @@ export function Navbar() {
                         <div className="border-2 rounded-full p-1 border-var(--foreground) overflow-hidden w-[50px] h-[50px] flex items-center justify-center">
                             {user?.image_user ? (
                                 <Image
-                                    src={`${API_URL}files/${user.image_user}`}
+                                    src={`${API_URL}/files/${user.image_user}`}
                                     alt="user"
                                     width={50}
                                     height={50}

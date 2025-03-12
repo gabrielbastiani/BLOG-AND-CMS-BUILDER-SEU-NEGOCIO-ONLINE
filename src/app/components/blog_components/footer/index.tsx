@@ -49,7 +49,7 @@ export function Footer() {
                                     className="flex items-center space-x-2 text-gray-300 hover:text-white"
                                 >
                                     <Image
-                                        src={media.logo_media ? `${API_URL}files/${media.logo_media}` : noImage}
+                                        src={media.logo_media ? `${API_URL}/files/${media.logo_media}` : noImage}
                                         alt={media.name_media ? media.name_media : ""}
                                         width={50}
                                         height={50}

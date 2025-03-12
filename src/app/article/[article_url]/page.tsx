@@ -44,11 +44,11 @@ export async function generateMetadata(
       ?.substring(0, 160) || "Leia este artigo completo em nosso blog";
 
     const imageUrl = article_data.image_post
-      ? new URL(`files/${article_data.image_post}`, API_URL).toString()
+      ? new URL(`/files/${article_data.image_post}`, API_URL).toString()
       : new URL("../../../assets/no-image-icon-6.png", BLOG_URL).toString();
 
     const faviconUrl = response.data.favicon
-      ? new URL(`files/${response.data.favicon}`, API_URL).toString()
+      ? new URL(`/files/${response.data.favicon}`, API_URL).toString()
       : "../app/favicon.ico";
 
     return {
@@ -162,7 +162,7 @@ export default async function Article({ params }: ArticlePageProps) {
           <div className="relative w-full h-[300px] md:h-[500px] overflow-hidden">
             {article_data?.image_post ? (
               <Image
-                src={`${API_URL}files/${article_data.image_post}`}
+                src={`${API_URL}/files/${article_data.image_post}`}
                 alt={article_data.title || "Imagem do artigo"}
                 className="object-fill w-full h-full"
                 width={1200}

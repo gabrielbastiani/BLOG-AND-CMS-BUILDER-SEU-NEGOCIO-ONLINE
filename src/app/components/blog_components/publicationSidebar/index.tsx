@@ -44,7 +44,7 @@ export default function PublicationSidebar({ existing_sidebar }: SidebarProps) {
                         onClick={() => click_publication(item.id)}
                     >
                         <Image
-                            src={`${API_URL}files/${item.image_url}`}
+                            src={`${API_URL}/files/${item.image_url}`}
                             alt="marketing_sidebar"
                             width={160}
                             height={220}

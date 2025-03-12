@@ -43,7 +43,7 @@ export default function Categories_grid() {
                         <Link href={`/posts_categories/${category.slug_name_category}`}>
                             {category.image_category ? (
                                 <Image
-                                    src={`${API_URL}files/${category.image_category}`}
+                                    src={`${API_URL}/files/${category.image_category}`}
                                     alt={category.name_category}
                                     width={80}
                                     height={80}

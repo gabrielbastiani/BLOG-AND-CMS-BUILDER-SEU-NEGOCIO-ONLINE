@@ -90,7 +90,7 @@ export default function MarketingPopup({ position, local }: PopupProps) {
 
                 {popupData.image_url && (
                     <Image
-                        src={popupData.image_url ? `${API_URL}files/${popupData.image_url}` : noImage}
+                        src={popupData.image_url ? `${API_URL}/files/${popupData.image_url}` : noImage}
                         width={150}
                         height={150}
                         alt="Marketing Image"

@@ -168,7 +168,7 @@ export function SidebarAndHeader({ children }: Content) {
                             <div className="text-white font-semibold uppercase mb-2 ml-2 mt-3">
                                 <Link href="/dashboard">
                                     <Image
-                                        src={configs?.logo ? `${API_URL}files/${configs?.logo}` : noImage}
+                                        src={configs?.logo ? `${API_URL}/files/${configs?.logo}` : noImage}
                                         width={120}
                                         height={120}
                                         alt="logo"
@@ -813,7 +813,7 @@ export function SidebarAndHeader({ children }: Content) {
                                 <div className="border-2 rounded-full p-1 border-var(--foreground) overflow-hidden w-[50px] h-[50px] flex items-center justify-center">
                                     {user?.image_user ? (
                                         <Image
-                                            src={`${API_URL}files/${user.image_user}`}
+                                            src={`${API_URL}/files/${user.image_user}`}
                                             alt="user"
                                             width={50}
                                             height={50}

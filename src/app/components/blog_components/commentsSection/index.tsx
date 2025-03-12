@@ -216,7 +216,7 @@ export function CommentsSection({ post_id }: CommentProps) {
             <div className={`ml-${nivel * 4} border-l pl-4 mb-4`}>
                 <div className="flex items-start mb-2">
                     <Image
-                        src={comment.image_user ? `${API_URL}files/${comment.image_user}` : no_user}
+                        src={comment.image_user ? `${API_URL}/files/${comment.image_user}` : no_user}
                         alt={comment.name_user}
                         width={40}
                         height={40}

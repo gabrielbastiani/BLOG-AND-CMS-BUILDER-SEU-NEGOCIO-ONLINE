@@ -37,7 +37,7 @@ export default function Last_post() {
                     >
                         <Link href={`/article/${post.custom_url ? post.custom_url : post.slug_title_post}`}>
                             <Image
-                                src={post.image_post ? `${API_URL}files/${post.image_post}` : noImage}
+                                src={post.image_post ? `${API_URL}/files/${post.image_post}` : noImage}
                                 alt={post.title}
                                 width={280}
                                 height={80}

@@ -181,7 +181,7 @@ export default function Comments() {
                                         {item.userBlog?.image_user ? (
                                             <Image
                                                 key={item.id}
-                                                src={`${API_URL}files/${item.userBlog.image_user}`}
+                                                src={`${API_URL}/files/${item.userBlog.image_user}`}
                                                 alt={item.userBlog?.name}
                                                 width={80}
                                                 height={80}

@@ -488,7 +488,7 @@ export default function Seo_id({ params }: { params: { seo_id: string } }) {
                                         <div key={index} className="relative group w-full aspect-square">
                                             <div className="relative w-full h-full rounded-lg border-2 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                                                 <Image
-                                                    src={`${API_URL}files/${image}`}
+                                                    src={`${API_URL}/files/${image}`}
                                                     alt={`Imagem OG ${index}`}
                                                     fill
                                                     className="object-cover"
@@ -617,7 +617,7 @@ export default function Seo_id({ params }: { params: { seo_id: string } }) {
                                                 <div key={index} className="relative group w-full aspect-square">
                                                     <div className="relative w-full h-full rounded-lg border-2 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                                                         <Image
-                                                            src={`${API_URL}files/${image}`}
+                                                            src={`${API_URL}/files/${image}`}
                                                             alt={`Imagem Twitter ${index}`}
                                                             fill
                                                             className="object-cover"

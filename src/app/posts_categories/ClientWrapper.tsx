@@ -69,7 +69,7 @@ export default function ClientWrapper({
                             >
                                 <div className="relative h-48">
                                     <Image
-                                        src={`${API_URL}files/${post.image_post}`}
+                                        src={`${API_URL}/files/${post.image_post}`}
                                         alt={post.title}
                                         fill
                                         className="object-cover rounded-t-lg"

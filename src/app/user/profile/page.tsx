@@ -31,7 +31,7 @@ export default function Profile() {
     const { user, signOut, updateUser } = useContext(AuthContext);
 
     const [avatarUrl, setAvatarUrl] = useState(
-        user?.image_user ? `${API_URL}files/${user.image_user}` : ""
+        user?.image_user ? `${API_URL}/files/${user.image_user}` : ""
     );
     const [photo, setPhoto] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function Profile() {
 
     useEffect(() => {
         if (user?.image_user) {
-            setAvatarUrl(`${API_URL}files/${user.image_user}`);
+            setAvatarUrl(`${API_URL}/files/${user.image_user}`);
         }
         reset({
             name: user?.name,

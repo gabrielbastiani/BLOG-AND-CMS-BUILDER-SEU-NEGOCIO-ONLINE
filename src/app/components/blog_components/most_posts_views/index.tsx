@@ -59,7 +59,7 @@ export default function Most_posts_views() {
                         <div className="bg-white rounded shadow p-4 hover:shadow-lg transition">
                         <Link href={`/article/${post.custom_url ? post.custom_url : post.slug_title_post}`}>
                             <Image
-                                src={`${API_URL}files/${post.image_post}`}
+                                src={`${API_URL}/files/${post.image_post}`}
                                 alt={post.title}
                                 width={280}
                                 height={80}

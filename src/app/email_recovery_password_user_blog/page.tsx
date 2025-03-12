@@ -91,7 +91,7 @@ export default function Emailrecoverypassworduserblog() {
                         <div className='mb-6 max-w-sm w-full'>
                             {configs?.logo ?
                                 <Image
-                                    src={configs?.logo ? `${API_URL}files/${configs?.logo}` : noImage}
+                                    src={configs?.logo ? `${API_URL}/files/${configs?.logo}` : noImage}
                                     alt='logo-do-site'
                                     width={500}
                                     height={500}

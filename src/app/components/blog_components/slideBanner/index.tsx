@@ -89,7 +89,7 @@ export function SlideBanner({ position, local }: SliderProps) {
           onClick={() => click_publication(banner.id)}
         >
           <Image
-            src={`${API_URL}files/${banner.image_url}`}
+            src={`${API_URL}/files/${banner.image_url}`}
             alt={banner.title}
             width={1200}
             height={800}
