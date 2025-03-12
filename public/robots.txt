@@ -11,7 +11,7 @@ Disallow: /marketing_publication
 Disallow: /configurations
 
 # Host
-Host: https://lblog.builderseunegocioonline.com.br
+Host: http://localhost:3000
 
 # Sitemaps
-Sitemap: https://lblog.builderseunegocioonline.com.br/sitemap.xml
+Sitemap: http://localhost:3000/sitemap.xml
