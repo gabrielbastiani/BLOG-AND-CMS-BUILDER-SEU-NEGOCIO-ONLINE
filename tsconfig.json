@@ -10,9 +10,10 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/services/api": ["./src/services/api"], // Adicione esta linha
+      "@/contexts/*": ["./src/contexts/*"], // Adicione para contexts
+      "@/app/components/*": ["./src/app/components/*"] // Adicione para components
     },
     "strict": true,
     "skipLibCheck": true,
@@ -25,11 +26,9 @@
     "types": [
       "next"
     ],
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "plugins": [{
+      "name": "next"
+    }],
     "allowJs": true
   },
   "include": [

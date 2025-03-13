@@ -10,7 +10,7 @@ const nextConfig = (phase) => {
   return {
     env: {
       // Força o carregamento das variáveis do .env.local
-      NEXT_PUBLIC_ENV: process.env.NEXT_PUBLIC_ENV,
+      API_URL: process.env.NEXT_PUBLIC_API_URL,
     },
     reactStrictMode: true,
 

@@ -4,7 +4,7 @@ import { Footer } from "./components/blog_components/footer";
 import { Navbar } from "./components/blog_components/navbar";
 import { SlideBanner } from "./components/blog_components/slideBanner";
 import HomePage from "./components/blog_components/homePage";
-import { setupAPIClient } from "@/services/api";
+import { setupAPIClient } from "../services/api";
 import PublicationSidebar from "./components/blog_components/publicationSidebar";
 import { Metadata, ResolvingMetadata } from "next";
 
