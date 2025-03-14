@@ -7,13 +7,12 @@
       "esnext"
     ],
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/services/api": ["./src/services/api"], // Adicione esta linha
-      "@/contexts/*": ["./src/contexts/*"], // Adicione para contexts
-      "@/app/components/*": ["./src/app/components/*"] // Adicione para components
+      "@/*": [
+        "./src/*"
+      ]
     },
     "strict": true,
     "skipLibCheck": true,
@@ -24,12 +23,17 @@
     "jsx": "preserve",
     "incremental": true,
     "types": [
-      "next"
+      "next",
+      "node"
     ],
-    "plugins": [{
-      "name": "next"
-    }],
-    "allowJs": true
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "**/*.ts",

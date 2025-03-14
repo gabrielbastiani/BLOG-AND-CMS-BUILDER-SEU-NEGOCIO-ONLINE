@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
-const PUBLIC_ROUTES = [
+// Rotas de autenticação (usuário autenticado não deve acessá-las)
+const PUBLIC_AUTH_ROUTES = [
   '/login',
   '/register',
   '/recovery_password'
 ];
+
+// Rotas que requerem autenticação e controle de acesso por role
 const PROTECTED_ROUTES = [
   '/configurations/seo_pages',
   '/marketing_publication/config_interval_banner',
@@ -31,8 +34,10 @@ const PROTECTED_ROUTES = [
   '/user/add_user',
   '/contacts_form/all_contacts',
   '/central_notifications'
-]; // Rotas que requerem autenticação
-const ROLE_BASED_ROUTES = {
+];
+
+// Rotas restritas por role
+const ROLE_BASED_ROUTES: Record<string, string[]> = {
   SUPER_ADMIN: [
     '/configurations/seo_pages',
     '/marketing_publication/config_interval_banner',
@@ -57,7 +62,7 @@ const ROLE_BASED_ROUTES = {
     '/user/add_user',
     '/contacts_form/all_contacts',
     '/central_notifications'
-  ], // Exemplo de rotas restritas para SUPER_ADMIN
+  ],
   ADMIN: [
     '/configurations/seo_pages',
     '/marketing_publication/config_interval_banner',
@@ -82,7 +87,7 @@ const ROLE_BASED_ROUTES = {
     '/user/add_user',
     '/contacts_form/all_contacts',
     '/central_notifications'
-  ], // Exemplo de rotas para ADMIN
+  ],
   EMPLOYEE: [
     '/posts/comments',
     '/posts/all_posts/post',
@@ -93,80 +98,72 @@ const ROLE_BASED_ROUTES = {
     '/categories/all_categories',
     '/user/profile',
     '/central_notifications'
-  ], // Exemplo de rotas para EMPLOYEE
+  ]
 };
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
+  // Se a rota não for protegida nem for de autenticação, permite acesso livre
+  if (!PROTECTED_ROUTES.includes(pathname) && !PUBLIC_AUTH_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Obtém o token do cookie
   const token = req.cookies.get('@cmsblog.token')?.value;
 
+  // Se não houver token e a rota for protegida, redireciona para o login
   if (!token) {
-    // Se o token não existir, redirecionar o usuário para a página de login
-    if (PROTECTED_ROUTES.includes(req.nextUrl.pathname)) {
+    if (PROTECTED_ROUTES.includes(pathname)) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
     return NextResponse.next();
   }
 
-  // Decodificar o token
-  let decodedToken: any;
+  let payload: any;
   try {
-    decodedToken = jwt.decode(token);
+    // A chave secreta deve estar definida (por exemplo, em process.env.JWT_SECRET)
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
+    const { payload: verifiedPayload } = await jwtVerify(token, secret);
+    payload = verifiedPayload;
   } catch (error) {
-    // Se o token for inválido ou expirado, redirecionar para a página de login
-    return NextResponse.redirect(new URL('/login', req.url));
+    // Se ocorrer erro na verificação, limpa o cookie e redireciona para o login
+    const response = NextResponse.redirect(new URL('/login', req.url));
+    response.cookies.delete('@cmsblog.token');
+    return response;
   }
 
-  // Se o usuário tentar acessar /login, /register ou /recovery_password com token válido
-  if (PUBLIC_ROUTES.includes(req.nextUrl.pathname)) {
+  // Se o usuário autenticado tentar acessar uma rota de autenticação (ex: /login),
+  // redireciona para o dashboard
+  if (PUBLIC_AUTH_ROUTES.includes(pathname)) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
-  // Verificar se o usuário tem permissão para acessar a rota atual
-  const userRole = decodedToken.role; // Supondo que o campo 'role' existe no token
-
-  if (!userRole || !hasAccessToRoute(userRole, req.nextUrl.pathname)) {
-    // Se o usuário não tiver permissão para a rota, redirecionar para página inicial
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+  // Para rotas protegidas, verifica se o token contém a propriedade "role" e se essa role tem acesso à rota
+  if (PROTECTED_ROUTES.includes(pathname)) {
+    const userRole = payload.role;
+    if (!userRole || !hasAccessToRoute(userRole, pathname)) {
+      // Se não houver role ou a role não permitir acesso, limpa o cookie e redireciona para o login
+      const response = NextResponse.redirect(new URL('/login', req.url));
+      response.cookies.delete('@cmsblog.token');
+      return response;
+    }
   }
 
   return NextResponse.next();
 }
 
-// Função para verificar se o usuário tem permissão para a rota
-function hasAccessToRoute(userRole: string, pathname: string): boolean {/* @ts-ignore */
+// Função que verifica se a role do usuário permite o acesso à rota solicitada
+function hasAccessToRoute(userRole: string, pathname: string): boolean {
   const allowedRoutes = ROLE_BASED_ROUTES[userRole];
   return allowedRoutes ? allowedRoutes.includes(pathname) : false;
 }
 
 export const config = {
   matcher: [
-    '/configurations/seo_pages',
-    '/configurations',
-    '/marketing_publication/config_interval_banner',
-    '/marketing_publication/add_marketing_publication',
-    '/marketing_publication/all_marketing_publication',
-    '/marketing_publication',
-    '/user/users_blog',
-    '/posts/comments',
-    '/posts/all_posts/post',
-    '/posts/all_posts',
-    '/posts/add_post',
-    '/posts',
-    '/tags/all_tags',
-    '/tags',
-    '/categories',
-    '/categories/add_category',
-    '/categories/all_categories',
-    '/newsletter',
-    '/dashboard',
-    '/user/profile',
-    '/login',
-    '/register',
-    '/recovery_password',
-    '/user/all_users',
-    '/user/add_user',
-    '/contacts_form/all_contacts',
-    '/central_notifications'
+    // Aplica o middleware a todas as rotas, exceto arquivos estáticos e favicon
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/',
+    '/(.*)'
   ]
 };

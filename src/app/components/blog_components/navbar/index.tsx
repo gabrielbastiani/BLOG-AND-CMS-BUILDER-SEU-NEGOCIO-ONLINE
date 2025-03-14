@@ -70,7 +70,7 @@ export function Navbar() {
         }
     };
 
-    
+
     return (
         <header className="bg-black shadow-md sticky top-0 z-50">
             <nav className="container mx-auto flex justify-between items-center py-2 px-2 md:px-8">
@@ -198,10 +198,10 @@ export function Navbar() {
                     </button>
                 )}
             </nav>
-            
+
             <div>
                 {modalLogin && <ModalLogin onClose={() => setModalLogin(false)} />}
-                                {modalEditUser && <ModalEditUser onClose={() => setModalEditUser(false)} />}
+                {modalEditUser && <ModalEditUser onClose={() => setModalEditUser(false)} />}
             </div>
         </header>
     )
