@@ -1,15 +1,21 @@
+// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-// Rotas de autenticação (usuário autenticado não deve acessá-las)
+interface JWTPayload {
+  role?: string;
+  [key: string]: any;
+}
+
+// Rotas públicas de autenticação
 const PUBLIC_AUTH_ROUTES = [
   '/login',
   '/register',
   '/recovery_password'
 ];
 
-// Rotas que requerem autenticação e controle de acesso por role
+// Todas as rotas que requerem autenticação
 const PROTECTED_ROUTES = [
   '/configurations/seo_pages',
   '/marketing_publication/config_interval_banner',
@@ -36,9 +42,9 @@ const PROTECTED_ROUTES = [
   '/central_notifications'
 ];
 
-// Rotas restritas por role
-const ROLE_BASED_ROUTES: Record<string, string[]> = {
-  SUPER_ADMIN: [
+// Mapeamento de roles para rotas permitidas
+const ROLE_BASED_ACCESS: Record<string, Set<string>> = {
+  SUPER_ADMIN: new Set([
     '/configurations/seo_pages',
     '/marketing_publication/config_interval_banner',
     '/marketing_publication/add_marketing_publication',
@@ -62,8 +68,8 @@ const ROLE_BASED_ROUTES: Record<string, string[]> = {
     '/user/add_user',
     '/contacts_form/all_contacts',
     '/central_notifications'
-  ],
-  ADMIN: [
+  ]),
+  ADMIN: new Set([
     '/configurations/seo_pages',
     '/marketing_publication/config_interval_banner',
     '/marketing_publication/add_marketing_publication',
@@ -87,8 +93,8 @@ const ROLE_BASED_ROUTES: Record<string, string[]> = {
     '/user/add_user',
     '/contacts_form/all_contacts',
     '/central_notifications'
-  ],
-  EMPLOYEE: [
+  ]),
+  EMPLOYEE: new Set([
     '/posts/comments',
     '/posts/all_posts/post',
     '/posts/all_posts',
@@ -98,72 +104,64 @@ const ROLE_BASED_ROUTES: Record<string, string[]> = {
     '/categories/all_categories',
     '/user/profile',
     '/central_notifications'
-  ]
+  ])
 };
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.includes(pathname);
+  const isProtectedRoute = PROTECTED_ROUTES.includes(pathname);
 
-  // Se a rota não for protegida nem for de autenticação, permite acesso livre
-  if (!PROTECTED_ROUTES.includes(pathname) && !PUBLIC_AUTH_ROUTES.includes(pathname)) {
+  // Liberar rotas não protegidas
+  if (!isProtectedRoute && !isPublicAuthRoute) {
     return NextResponse.next();
   }
 
-  // Obtém o token do cookie
-  const token = req.cookies.get('@cmsblog.token')?.value;
+  const token = request.cookies.get('@cmsblog.token')?.value;
+  const response = NextResponse.next();
 
-  // Se não houver token e a rota for protegida, redireciona para o login
-  if (!token) {
-    if (PROTECTED_ROUTES.includes(pathname)) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    return NextResponse.next();
+  // Redirecionar para login se tentar acessar rota protegida sem token
+  if (isProtectedRoute && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  let payload: any;
-  try {
-    // A chave secreta deve estar definida (por exemplo, em process.env.JWT_SECRET)
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
-    const { payload: verifiedPayload } = await jwtVerify(token, secret);
-    payload = verifiedPayload;
-  } catch (error) {
-    // Se ocorrer erro na verificação, limpa o cookie e redireciona para o login
-    const response = NextResponse.redirect(new URL('/login', req.url));
-    response.cookies.delete('@cmsblog.token');
-    return response;
-  }
+  // Verificar token JWT
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+      const { payload } = await jwtVerify<JWTPayload>(token, secret);
 
-  // Se o usuário autenticado tentar acessar uma rota de autenticação (ex: /login),
-  // redireciona para o dashboard
-  if (PUBLIC_AUTH_ROUTES.includes(pathname)) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
+      // Redirecionar usuários autenticados que tentam acessar rotas públicas
+      if (isPublicAuthRoute) {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
 
-  // Para rotas protegidas, verifica se o token contém a propriedade "role" e se essa role tem acesso à rota
-  if (PROTECTED_ROUTES.includes(pathname)) {
-    const userRole = payload.role;
-    if (!userRole || !hasAccessToRoute(userRole, pathname)) {
-      // Se não houver role ou a role não permitir acesso, limpa o cookie e redireciona para o login
-      const response = NextResponse.redirect(new URL('/login', req.url));
-      response.cookies.delete('@cmsblog.token');
-      return response;
+      // Verificar permissões de acesso
+      if (isProtectedRoute && payload.role) {
+        const allowedRoutes = ROLE_BASED_ACCESS[payload.role];
+        const hasAccess = allowedRoutes?.has(pathname);
+
+        if (!hasAccess) {
+          const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+          redirectResponse.cookies.delete('@cmsblog.token');
+          return redirectResponse;
+        }
+      }
+
+    } catch (error) {
+      // Token inválido - limpar cookie e redirecionar
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      redirectResponse.cookies.delete('@cmsblog.token');
+      return redirectResponse;
     }
   }
 
-  return NextResponse.next();
-}
-
-// Função que verifica se a role do usuário permite o acesso à rota solicitada
-function hasAccessToRoute(userRole: string, pathname: string): boolean {
-  const allowedRoutes = ROLE_BASED_ROUTES[userRole];
-  return allowedRoutes ? allowedRoutes.includes(pathname) : false;
+  return response;
 }
 
 export const config = {
   matcher: [
-    // Aplica o middleware a todas as rotas, exceto arquivos estáticos e favicon
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-    '/',
-    '/(.*)'
+    // Aplicar middleware a todas as rotas exceto arquivos estáticos
+    '/((?!_next/static|_next/image|favicon.ico|api/auth).*)'
   ]
 };

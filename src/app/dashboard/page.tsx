@@ -113,7 +113,7 @@ export default function Dashboard() {
 
         <div className="p-4 space-y-6">
           <ClickPublicationMarketingData
-          /* @ts-ignore */
+            /* @ts-ignore */
             publicationsClickMetrics={publicationsClick}
           />
         </div>
